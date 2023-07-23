@@ -1,4 +1,10 @@
-.ipynb_checkpoints
-config.py
-sample_data/
+
+# Files
 mxm_dataset.db
+config.py
+config.cpython-311.pyc
+.cache
+
+# Directories
+sample_data/
+.ipynb_checkpoints
