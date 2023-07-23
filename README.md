@@ -49,7 +49,7 @@ Thierry Bertin-Mahieux and Daniel P.W. Ellis and Brian Whitman and Paul Lamere, 
 
 ## Project Owners
 - [Grace Chen](https://github.com/grchen99)
-- [Patrick Cole](https://github.com/NWstudent)
+- Patrick
 - [Nicholas Drake](https://github.com/DrakeData)
 - Olushola Durojaiye
 - [Lena Lu](https://github.com/lenaxlu)
