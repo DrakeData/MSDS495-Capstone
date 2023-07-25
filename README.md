@@ -1,5 +1,5 @@
 # MSDS495-Capstone
-This repository contains the code used for MSDS 495 Capstone Project.
+This repository contains the code used for MSDS 498 Capstone Project.
 
 ## Introduction
 ![listr_logo](images/listr_logo.png)
@@ -17,11 +17,14 @@ Consumers only need one subscription; we'll make sure Listr is the one they choo
 
 |<div style="width:100px">Data Set</div>|Description|
 |:-------------------------------------:|:----------|
-| <img align="left"  src="images/millionsong2-128.jpg"> | [Million Song Dataset](http://millionsongdataset.com/) [[3]](#3) is a large collection of audio features and metadatafor a million contemporary popular music tracks. It was created forresearch purposes and provides a rich set of data that can be used forvarious music-related analyses and machine learning tasks. The MillionSong Dataset data includes track metadata, range of audio featurescomputed from the audio signal of each track, social tags associated witheach track, and information on track similarity and nearest neighborsbased on audio features.| 
-<img align="left" src="images/musixmatch_logo.png"> | [Musixmatch](https://www.musixmatch.com/) [[4]](#4) provides a large collection of song lyrics in bag-of-words that complements the Million Song Dataset by providing a comprehensive collection of song lyrics across various genres, artists, and languages. Integrating this dataset enhances music analysis, enabling correlations between lyrics and musical features.|
-<img align="left" src="images/spotify_api.png"> | [The Spotify Web API](https://developer.spotify.com/documentation/web-api) [[5]](#5) empowers the development of applications that seamlessly interact with Spotify's streaming service. It enables retrieving content metadata, accessing recommendations, managing playlists, and controlling playback functionalities. |
+|<img align="left" src="images/spotify_api.png"> | [The Spotify Web API](https://developer.spotify.com/documentation/web-api) [[3]](#3) empowers the development of applications that seamlessly interact with Spotify's streaming service. It enables retrieving content metadata, accessing recommendations, managing playlists, and controlling playback functionalities. |
 
 ## Requirements
+- Access to Spotify's API
+    - You will need to follow [these instructions](https://docs.google.com/document/d/1jyA7lVMDGPY58dkp6uqyZzQIvDeGvZ6be5VlswqpvPg/edit) to get your Client ID and Client Secret API Keys
+- Create a config.py file that includes:
+    - SPOTIFY_CLIENT_KEY = "YOUR_CLIENT_KEY"
+    - SPOTIFY_SECRET_KEY = "YOUR_SECRET_KEY"
 
 ## Project Details
 
@@ -37,21 +40,13 @@ David Curry, “Music Streaming App Revenue and Usage Statistics (2023),” Busi
 “Music Streaming Market Share and Revenue Statistics: Details on the Biggest Music Streaming Services,” SiriusXM Music forBusiness, January 27, 2023, https://sxmbusiness.com/music-streaming-market-share-and-revenue-statistic.
 
 <a id="3">[3]</a>
-Thierry Bertin-Mahieux, Daniel P.W. Ellis, Brian Whitman, and Paul Lamere. 
-The Million Song Dataset. In Proceedings of the 12th International Society
-for Music Information Retrieval Conference (ISMIR 2011), 2011, http://millionsongdataset.com/.
-
-<a id="4">[4]</a>
-Thierry Bertin-Mahieux and Daniel P.W. Ellis and Brian Whitman and Paul Lamere, "The Million Song Dataset," Proceedings of the 12th International Conference on Music Information Retrieval, 2021, http://millionsongdataset.com/musixmatch.
-
-<a id="5">[5]</a>
 “Spotify API,” Web API | Spotify for Developers, accessed July 8, 2023, https://developer.spotify.com/documentation/web-api.
 
 ## Project Owners
 - [Grace Chen](https://github.com/grchen99)
 - [Patrick Cole](https://github.com/NWstudent)
 - [Nicholas Drake](https://github.com/DrakeData)
-- Olushola Durojaiye
+- [Olushola Durojaiye](https://github.com/oluduroj)
 - [Lena Lu](https://github.com/lenaxlu)
 
 Repository created: 7/11/2023
