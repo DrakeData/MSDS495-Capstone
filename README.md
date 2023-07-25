@@ -44,7 +44,7 @@ David Curry, “Music Streaming App Revenue and Usage Statistics (2023),” Busi
 
 ## Project Owners
 - [Grace Chen](https://github.com/grchen99)
-- [Patrick Cole](https://github.com/NWstudent)
+- Patrick
 - [Nicholas Drake](https://github.com/DrakeData)
 - [Olushola Durojaiye](https://github.com/oluduroj)
 - [Lena Lu](https://github.com/lenaxlu)
