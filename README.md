@@ -1,4 +1,4 @@
-# MSDS495-Capstone
+# MSDS498-Capstone
 This repository contains the code used for MSDS 498 Capstone Project.
 
 ## Introduction
