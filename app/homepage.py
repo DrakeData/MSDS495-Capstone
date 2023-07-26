@@ -14,7 +14,7 @@ from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 # ---- MAIN TAB SECTION ----
 # emoji cheatsheet: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(
-    page_title="MSDS 495: Capstone Project", 
+    page_title="MSDS 498: Capstone Project", 
     page_icon=":musical_note:", 
     layout="wide"
     )
