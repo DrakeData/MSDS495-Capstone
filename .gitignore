@@ -8,3 +8,4 @@ config.cpython-311.pyc
 # Directories
 sample_data/
 .ipynb_checkpoints
+__pycache__/config.cpython-310.pyc
