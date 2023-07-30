@@ -29,7 +29,7 @@ with st.container():
 
 # Create Sidebar
 search_options = ["Track", "Artist", "Album"]
-search_selected = st.sidebar.selectbox("Search Choise: ", search_options)
+search_selected = st.sidebar.selectbox("Search Options: ", search_options)
 
 # user interactive search
 search_keyword = st.text_input(f"{search_selected} (Type in {search_selected} name)")

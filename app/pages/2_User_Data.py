@@ -196,14 +196,19 @@ if st.button("Login to Spotify"):
         # Visualizations
         # Favorite Simplified Genres - Bar Chart
         favorite_genres = df_main['track_name'].groupby(df_main['genre']).count().reset_index()
-        favorite_genres = favorite_genres.rename(columns={'track_name': 'count'})
-        favorite_genres = favorite_genres.sort_values('count', ascending=False)
+        favorite_genres = favorite_genres.rename(columns={'genre':'Genre',
+                                                          'track_name': 'Count'})
+        favorite_genres = favorite_genres.sort_values('Count', ascending=False)
 
         fig1 = px.bar(favorite_genres, x='Genre', y='Count', title='Top Favorite Simplified Genres')
         st.plotly_chart(fig1)
         
         # Danceability vs. Energy - Scatter Plot
-        fig2 = px.scatter(df_main, x='Danceability', y='Energy', hover_data=['track_name', 'artist_name'],
+        dance_eng = df_main[['track_name', 'artist_name','danceability', 'energy']]
+        dance_eng = dance_eng.rename(columns={'danceability':'Danceability',
+                                              'energy': 'Energy'})
+
+        fig2 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name', 'artist_name'],
                   title='Danceability vs. Energy of Listened Tracks')
         st.plotly_chart(fig2)
 
