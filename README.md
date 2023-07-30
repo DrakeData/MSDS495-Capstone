@@ -2,7 +2,8 @@
 This repository contains the code used for MSDS 498 Capstone Project.
 
 ## Introduction
-![listr_logo](images/listr_logo.png)
+<!-- ![listr_logo](images/listr_logo.png) -->
+![listr_logo2](images/Listr_Logo.svg)
 
 Streaming has become the primary listening format for music in the last decade. It hasgrown at an average rate of 43.9% since 2014 with an annual revenue of $13.7B in theUnited States alone in 2022 [[1]](#1). With any highly profitable business, there are bound tobe many competitors vying for their own share. Spotify currently dominates theglobal music streaming market share at 32% in 2021, but that is on the decline as theywere at 34% in 2019 [[2]](#2). The market is oversaturated-- Amazon Music and YouTubeMusic increased their subscriber count by 25% and 50% respectively in 2021.
 
