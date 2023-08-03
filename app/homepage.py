@@ -12,6 +12,7 @@ from PIL import Image
 from spotipy.oauth2 import SpotifyClientCredentials
 from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 
+
 # ---- MAIN TAB SECTION ----
 # emoji cheatsheet: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(
@@ -19,6 +20,30 @@ st.set_page_config(
     page_icon=":musical_note:", 
     layout="wide"
     )
+
+# ---- REMOVE SIDEBAR EXTRA SPACING UPTOP ----
+st.markdown("""
+  <style>
+    div.css-1pd56a0.e1tzin5v0 {
+      margin-top: -75px;
+    }
+  </style>
+""", unsafe_allow_html=True)
+
+
+# ---- REMOVE MAIN PAGE EXTRA SPACING UPTOP ----
+st.markdown("""
+        <style>
+               .sidebar-content {
+                    padding-top: 1rem;
+                    padding-bottom: 0rem;
+                }
+               .block-container {
+                    padding-top: 1rem;
+                    padding-bottom: 0rem;
+                }
+        </style>
+        """, unsafe_allow_html=True)
 
 # Functions
 def render_svg(svg):
@@ -29,8 +54,8 @@ def render_svg(svg):
 
 # SVG Logo
 logo_svg = """
-        <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 757.15 289" style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
+        <svg width="400px" height="400px" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	  style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
 <g>
 	<path d="M736.79,198.01c-5.63-12.99-11.14-26.04-17.02-38.93c-2.11-4.63-2.64-7.55,1.97-11.66c4.05-3.6,7.17-9.5,8.25-14.88
 		c1.45-7.17,1.49-14.97,0.42-22.24c-2.01-13.68-10.62-21.69-24.45-23.01c-10.58-1.01-21.29-0.5-31.92-1.06
@@ -95,9 +120,19 @@ with st.container():
 search_options = ["Track", "Artist", "Album"]
 search_selected = st.sidebar.selectbox("Search Options: ", search_options)
 
-# user interactive search
-search_keyword = st.text_input(f"{search_selected} (Type in {search_selected} name)")
-button_clicked = st.button("Search")
+if search_selected == "Track":
+    # User interactive search
+    left_col, right_col = st.columns(2)
+    with left_col:
+        search_keyword = st.text_input(f"{search_selected} (Type in {search_selected} name)")
+    with right_col:
+        artist_name_search = st.text_input(f"Type in Artist name (optional)")
+    button_clicked = st.button("Search")
+else:
+    # user interactive search minus artist search option
+    search_keyword = st.text_input(f"{search_selected} (Type in {search_selected} name)")
+    button_clicked = st.button("Search")
+
 
 # Pull Spotify Data
 search_results = []
@@ -108,12 +143,13 @@ if search_keyword is not None and len(str(search_keyword)) > 0:
     # Track search
     if search_selected == 'Track':
         st.write("Searching track...")
-        tracks = sp.search(q=f"track:{search_keyword}", type='track', limit=20)
+        artist_query = f" artist:{artist_name_search}" if artist_name_search else ""
+        tracks = sp.search(q=f"track:{search_keyword}{artist_query}", type='track', limit=20)
         tracks_list = tracks['tracks']['items']
         if len(tracks_list) > 0:
             for track in tracks_list:
-                # st.write(f"{track['name']} By {track['artists'][0]['name']}")
                 search_results.append(f"{track['name']} By {track['artists'][0]['name']}")
+    
     # Artist search
     elif search_selected == 'Artist':
         st.write("Searching artist...")
@@ -284,3 +320,100 @@ with st.container():
                         col11.write(df_tracks_min['preview_url'][idx])  
                         with col12:   
                             st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
+        #### ARTIST DATA ####
+    elif search_selected == 'Artist':
+        st.write("Start artist search")
+        artists = sp.search(q='artist:'+ search_keyword,type='artist', limit=20)
+        artists_list = artists['artists']['items']
+        if len(artists_list) > 0:
+            for artist in artists_list:
+                # st.write(artist['name'])
+                search_results.append(artist['name'])
+        if selected_artist is not None and len(artists) > 0:
+            artists_list = artists['artists']['items']
+            artist_id = None
+            artist_uri = None
+            selected_artist_choice = None
+            if len(artists_list) > 0:
+                for artist in artists_list:
+                    if selected_artist == artist['name']:
+                        artist_id = artist['id']
+                        artist_uri = artist['uri']
+            
+            if artist_id is not None:
+                artist_choice = ['Albums', 'Top Songs']
+                selected_artist_choice = st.selectbox('Select artist choice', artist_choice)
+                        
+            if selected_artist_choice is not None:
+                if selected_artist_choice == 'Albums':
+                    artist_uri = 'spotify:artist:' + artist_id
+                    album_result = sp.artist_albums(artist_uri, album_type='album') 
+                    all_albums = album_result['items']
+                    col1, col2, col3 = st.columns((6,4,2))
+                    for album in all_albums:
+                        col1.write(album['name'])
+                        col2.write(album['release_date'])
+                        col3.write(album['total_tracks'])
+                elif selected_artist_choice == 'Top Songs':
+                    artist_uri = 'spotify:artist:' + artist_id
+                    top_songs_result = sp.artist_top_tracks(artist_uri)
+                    for track in top_songs_result['tracks']:
+                        st.write(track['id'])
+                        with st.container():
+                            col1, col2, col3, col4 = st.columns((4,4,2,2))
+                            col11, col12 = st.columns((10,2))
+                            col21, col22 = st.columns((11,1))
+                            col31, col32 = st.columns((11,1))
+                            col1.write(track['id'])
+                            col2.write(track['name'])
+                            if track['preview_url'] is not None:
+                                col11.write(track['preview_url'])  
+                                with col12:   
+                                    st.audio(track['preview_url'], format="audio/mp3")  
+                            with col3:
+                                def feature_requested():
+                                    track_features  = sp.audio_features(track['id']) 
+                                    df = pd.DataFrame(track_features, index=[0])
+                                    df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
+                                    with col21:
+                                        st.dataframe(df_features)
+                                    with col31:
+                                        labels= list(df_features)[:]
+                                        stats= df_features.mean().tolist()
+                                        
+                                        angles=np.linspace(0, 2*np.pi, len(labels), endpoint=False)
+                                        
+                                        # close the plot
+                                        stats=np.concatenate((stats,[stats[0]]))
+                                        angles=np.concatenate((angles,[angles[0]]))
+                                        
+                                        # Size of the figure
+                                        fig=plt.figure(figsize = (18,18))
+                                        ax = fig.add_subplot(221, polar=True)
+                                        ax.plot(angles, stats, 'o-', linewidth=2, label = "Features", color= 'gray')
+                                        ax.fill(angles, stats, alpha=0.25, facecolor='gray')
+                                        ax.set_thetagrids(angles[0:7] * 180/np.pi, labels , fontsize = 13)
+                                        ax.set_rlabel_position(250)
+
+                                        plt.yticks([0.2 , 0.4 , 0.6 , 0.8  ], ["0.2",'0.4', "0.6", "0.8"], color="grey", size=12)
+                                        plt.ylim(0,1)
+                                        plt.legend(loc='best', bbox_to_anchor=(0.1, 0.1))
+                                        
+                                        st.pyplot(plt)
+                                    
+                                feature_button_state = st.button('Track Audio Features', key=track['id'], on_click=feature_requested)
+                            with col4:
+                                st.write("WIP")
+                                # def similar_songs_requested():
+                                #     token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
+                                #     similar_songs_json = songrecommendations.get_track_recommendations(track['id'], token)
+                                #     recommendation_list = similar_songs_json['tracks']
+                                #     recommendation_list_df = pd.DataFrame(recommendation_list)
+                                #     recommendation_df = recommendation_list_df[['name', 'explicit', 'duration_ms', 'popularity']]
+                                #     with col21:
+                                #         st.dataframe(recommendation_df)
+                                #     with col31:
+                                #         songrecommendations.song_recommendation_vis(recommendation_df)
+
+                                # similar_songs_state = st.button('Similar Songs', key=track['id'], on_click=similar_songs_requested)
+                            # st.write('----')
