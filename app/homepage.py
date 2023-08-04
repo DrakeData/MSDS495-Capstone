@@ -307,19 +307,28 @@ with st.container():
             # st.dataframe(df_album_tracks)
             df_tracks_min = df_album_tracks.loc[:,
                             ['id', 'name', 'duration_ms', 'explicit', 'preview_url']]
-            # st.dataframe(df_tracks_min)
-            for idx in df_tracks_min.index:
-                with st.container():
-                    col1, col2, col3, col4 = st.columns((4,4,1,1))
-                    col11, col12 = st.columns((8,2))
-                    col1.write(df_tracks_min['id'][idx])
-                    col2.write(df_tracks_min['name'][idx])
-                    col3.write(df_tracks_min['duration_ms'][idx])
-                    col4.write(df_tracks_min['explicit'][idx])   
-                    if df_tracks_min['preview_url'][idx] is not None:
-                        col11.write(df_tracks_min['preview_url'][idx])  
-                        with col12:   
-                            st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
+            st.dataframe(df_tracks_min)
+
+            button_clicked2 = st.button("See Sample Tracks")
+
+            if button_clicked2 is not False:
+                for idx in df_tracks_min.index:
+                        with st.container():
+                            st.write(df_tracks_min['name'][idx])
+                            if df_tracks_min['preview_url'][idx] is not None:
+                                st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
+
+                # with st.container():
+                #     col1, col2, col3, col4 = st.columns((4,4,1,1))
+                #     col11, col12 = st.columns((8,2))
+                #     col1.write(df_tracks_min['id'][idx])
+                #     col2.write(df_tracks_min['name'][idx])
+                #     col3.write(df_tracks_min['duration_ms'][idx])
+                #     col4.write(df_tracks_min['explicit'][idx])   
+                #     if df_tracks_min['preview_url'][idx] is not None:
+                #         col11.write(df_tracks_min['preview_url'][idx])  
+                #         with col12:   
+                #             st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
         #### ARTIST DATA ####
     elif search_selected == 'Artist':
         st.write("Start artist search")
