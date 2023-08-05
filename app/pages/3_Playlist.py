@@ -11,6 +11,7 @@ from sklearn.cluster import KMeans
 import textwrap
 from PIL import Image
 from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyOAuth
 from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 
 
@@ -234,4 +235,48 @@ with st.container():
         energy_filter = mean_df[mean_df['cluster'] == 1]['energy'].iloc[0]
 
         new_df = df[(df['popularity']>= pop_filter) & (df['danceability']>=dance_filter) & (df['valence'].between(valence_filter-.30, valence_filter+.30)) & (df['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True)
+        st.session_state.new_df = new_df
         st.dataframe(new_df)
+
+    # Initialize st.session_state.new_df if not already initialized
+    if 'new_df' not in st.session_state:
+        st.session_state.new_df = None
+
+    # Get track ID list
+    if st.session_state.new_df is not None:
+        track_ids_ls = st.session_state.new_df['track_id'].tolist()
+
+        # Get the playlist name
+        st.header("Like what you see?")
+        st.write("If you have a spotify account, enter your playlist name and we'll add it to your playlist to share with others")
+
+        playlist_name = st.text_input("Enter Playlist Name", key="playlist_name_input")
+
+        # Create a playlist button
+        button_clicked2 = st.button("Create Playlist")
+
+        # Only create the playlist when the button is clicked
+        if button_clicked2 and len(track_ids_ls) > 0 and playlist_name:
+
+            # Spotify API Authentication
+            CLIENT_ID = SPOTIFY_CLIENT_KEY
+            CLIENT_SECRET = SPOTIFY_SECRET_KEY
+            REDIRECT_URI = 'http://localhost:7777/callback'
+
+            # Define the scope for the required permissions
+            SCOPE = 'playlist-modify-public'
+
+            # Create the SpotifyOAuth object
+            sp_oauth = SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET,
+                                    redirect_uri=REDIRECT_URI, scope=SCOPE)
+
+            # Get the access token using SpotifyOAuth
+            access_token = sp_oauth.get_access_token(as_dict=False)
+
+            # Use the access token to authenticate Spotipy
+            sp2 = spotipy.Spotify(auth_manager=sp_oauth)
+
+            # Create the playlist and add tracks
+            playlist = sp2.user_playlist_create(sp.me()["id"], f"{playlist_name}_listr", public=True)
+            sp2.playlist_add_items(playlist["id"], track_ids_ls)
+            st.success(f"Playlist '{playlist_name}_listr' created with {len(track_ids_ls)} tracks!")
