@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import base64
+from sklearn.cluster import KMeans
 import textwrap
 from PIL import Image
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -70,7 +71,8 @@ def track_id(username, playlist_id):
 def getTrackFeatures(id):
     meta = sp.track(id)
     features = sp.audio_features(id)
-
+    
+    track_id = meta['id']
     name = meta['name']
     album = meta['album']['name']
     artist = meta['album']['artists'][0]['name']
@@ -79,6 +81,7 @@ def getTrackFeatures(id):
     popularity = meta['popularity']
     acousticness = features[0]['acousticness']
     danceability = features[0]['danceability']
+    valence = features[0]['valence']
     energy = features[0]['energy']
     instrumentalness = features[0]['instrumentalness']
     liveness = features[0]['liveness']
@@ -87,8 +90,8 @@ def getTrackFeatures(id):
     tempo = features[0]['tempo']
     time_signature = features[0]['time_signature']
 
-    track = [name, album, artist, release_date, length, popularity, 
-             acousticness, danceability, energy, instrumentalness, liveness, loudness, 
+    track = [track_id, name, album, artist, release_date, length, popularity, 
+             acousticness, danceability, valence, energy, instrumentalness, liveness, loudness, 
              speechiness, tempo, time_signature]
     return track
 
@@ -96,22 +99,19 @@ def main_func(playlist_creator, playlist_uri, filename):
     ids = track_id(playlist_creator, playlist_uri)
     
     # get track by track ids
-    tracks = []
+    tracks = [] 
     for i in range(len(ids)):
         track = getTrackFeatures(ids[i])
         tracks.append(track)
         dff = pd.DataFrame(tracks, columns = [
-            'name', 'album', 'artist', 'release_date', 'length', 'popularity', 
-            'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 
+            'track_id', 'name', 'album', 'artist', 'release_date', 'length', 'popularity', 
+            'acousticness', 'danceability', 'valence',  'energy', 'instrumentalness', 'liveness', 'loudness', 
             'speechiness', 'tempo', 'time_signature'])
-        
-        # # save to csv
-        # dff.to_csv(filename+".csv", sep = ',', index=False)
     return dff
 
 # SVG Logo
 logo_svg = """
-        <svg width="400px" height="150px" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        <svg width="400px" height="150px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	  style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
 <g>
 	<path d="M736.79,198.01c-5.63-12.99-11.14-26.04-17.02-38.93c-2.11-4.63-2.64-7.55,1.97-11.66c4.05-3.6,7.17-9.5,8.25-14.88
@@ -181,8 +181,8 @@ with st.container():
     st.write("Sample URL: https://open.spotify.com/playlist/5Qnr7ct4jZ4ad1yDRuM1to?si=0bdc634e4b6c43f6")
 
 with st.container():
-    playlist1 = st.text_input(f"Enter Playlist 1 URL")
-    playlist2 = st.text_input(f"Enter Playlist 2 URL")
+    playlist1 = st.text_input(f"Enter Playlist 1 URL or Playlist ID")
+    playlist2 = st.text_input(f"Enter Playlist 2 URL or Playlist ID")
     
     button_clicked = st.button("Analyze Playlist")
 
@@ -190,7 +190,48 @@ with st.container():
         playlist1_id = playlist1.strip('https://open.spotify.com/playlist').split('?', 1)[0]
         playlist2_id = playlist2.strip('https://open.spotify.com/playlist').split('?', 1)[0]
 
-        df1 = main_func('Spotify', playlist1_id, 'playlist_1')
-        df2 = main_func('Spotify', playlist2_id, 'playlist_2')
+        # st.write(f"Playlist1 ID: {playlist1_id}")
+        # st.write(f"Playlist2 ID: {playlist2_id}")
 
-        st.dataframe(df1)
+        df1 = main_func('Spotify', playlist1_id, 'playlist_1')
+        df1['playlist_origin'] = 'playlist1'
+
+
+        df2 = main_func('Spotify', playlist2_id, 'playlist_2')
+        df2['playlist_origin'] = 'playlist2'
+    
+        # Concatinating two playlists
+        df = pd.concat([df1,df2], axis=0)
+
+        # drop duplicates in playlist and reset's index
+        df = df.drop_duplicates(subset='track_id').reset_index(drop=True)
+        # st.dataframe(df)
+
+        # MAKE MODEL
+        df_model = df.drop(['track_id', 'name', 'album', 'artist', 'release_date', 'playlist_origin'], axis=1)
+        # st.dataframe(dataset)
+
+        # Create cluster
+        model = KMeans(n_clusters=3)
+        y_pred = model.fit_predict(df_model)
+
+        # add cluster to new column
+        df_model['cluster'] = y_pred
+
+        # reindex
+        df_model = df_model.reset_index(drop=True)
+
+        grouped_df = df_model.groupby('cluster')
+        # st.dataframe(grouped_df)
+
+        mean_df = grouped_df.mean()
+        mean_df = mean_df.reset_index()
+
+        # Create filters
+        pop_filter = mean_df[mean_df['cluster'] == 1]['popularity'].iloc[0]
+        dance_filter = mean_df[mean_df['cluster'] == 1]['danceability'].iloc[0]
+        valence_filter = mean_df[mean_df['cluster'] == 1]['valence'].iloc[0]
+        energy_filter = mean_df[mean_df['cluster'] == 1]['energy'].iloc[0]
+
+        new_df = df[(df['popularity']>= pop_filter) & (df['danceability']>=dance_filter) & (df['valence'].between(valence_filter-.30, valence_filter+.30)) & (df['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True)
+        st.dataframe(new_df)

@@ -54,7 +54,7 @@ def render_svg(svg):
 
 # SVG Logo
 logo_svg = """
-        <svg width="400px" height="150px" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        <svg width="400px" height="150px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	  style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
 <g>
 	<path d="M736.79,198.01c-5.63-12.99-11.14-26.04-17.02-38.93c-2.11-4.63-2.64-7.55,1.97-11.66c4.05-3.6,7.17-9.5,8.25-14.88
@@ -318,17 +318,6 @@ with st.container():
                             if df_tracks_min['preview_url'][idx] is not None:
                                 st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
 
-                # with st.container():
-                #     col1, col2, col3, col4 = st.columns((4,4,1,1))
-                #     col11, col12 = st.columns((8,2))
-                #     col1.write(df_tracks_min['id'][idx])
-                #     col2.write(df_tracks_min['name'][idx])
-                #     col3.write(df_tracks_min['duration_ms'][idx])
-                #     col4.write(df_tracks_min['explicit'][idx])   
-                #     if df_tracks_min['preview_url'][idx] is not None:
-                #         col11.write(df_tracks_min['preview_url'][idx])  
-                #         with col12:   
-                #             st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
         #### ARTIST DATA ####
     elif search_selected == 'Artist':
         st.write("Start artist search")
