@@ -24,9 +24,6 @@ Consumers only need one subscription; we'll make sure Listr is the one they choo
 ## Requirements
 - Access to [Spotify's API](https://developer.spotify.com/documentation/web-api)
     - You will need to follow [these instructions](https://docs.google.com/document/d/1jyA7lVMDGPY58dkp6uqyZzQIvDeGvZ6be5VlswqpvPg/edit) to get your Client ID and Client Secret API Keys
-- Access to [Hugging Face API](https://huggingface.co/)
-    - Create a Hugging Face free account and visit access token to generate your personal token.
-    - Model we used: [mrm8488/t5-base-finetuned-emotion](https://huggingface.co/mrm8488/t5-base-finetuned-emotion).
 - Access to [LyricsGenius API](https://lyricsgenius.readthedocs.io/en/master/index.html)
     - Sign up for a (free) account that authorizes access to [the Genius API](https://genius.com/signup_or_login).
     - Go to the API section on Genius and [create a new API client](https://genius.com/api-clients/new).
