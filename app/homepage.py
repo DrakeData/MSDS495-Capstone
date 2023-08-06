@@ -9,8 +9,37 @@ import seaborn as sns
 import base64
 import textwrap
 from PIL import Image
+import plotly.express as px
 from spotipy.oauth2 import SpotifyClientCredentials
-from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from lyricsgenius import Genius
+from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
+
+import re
+import nltk
+import wordcloud
+import sklearn
+import matplotlib.pyplot as plt
+import gensim
+import pyLDAvis
+import pyLDAvis.gensim_models as gensimvis
+
+from gensim.corpora import Dictionary
+from gensim.corpora import MmCorpus
+from gensim.models import LdaModel
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.tokenize import RegexpTokenizer
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+
+nltk.download('stopwords', quiet=True)
+nltk.download('wordnet', quiet=True)
+nltk.download('punkt', quiet=True)
+nltk.download('omw-1.4', quiet=True)
 
 
 # ---- MAIN TAB SECTION ----
@@ -51,6 +80,76 @@ def render_svg(svg):
     b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     st.write(html, unsafe_allow_html=True)
+
+def get_emotion(text):
+    input_ids = tokenizer.encode(text + '</s>', return_tensors='pt', max_length = 512, truncation = True)
+
+    output = model.generate(input_ids=input_ids,
+               max_length=2)
+  
+    dec = [tokenizer.decode(ids) for ids in output]
+    label = dec[0]
+    return label
+
+def song_emotion(track_name, artist):
+    songs = genius.search_songs(track_name + ' ' + artist) #Finding all searches
+    try:
+        lyrics = genius.lyrics(song_url = songs['hits'][0]['result']['url']) #Returning the first song's lyrics
+        lyrics = lyrics.split('Lyrics\n', 1)[1] #Removing the title
+        lyrics = lyrics.split('Embed')[0] #Removing the end
+        lyrics = lyrics.replace('\n', ' ') #Removing line breaks from string
+        track_emotion = get_emotion(lyrics).split(' ')[1]
+        st.write(f'Track Emotion: {track_emotion}')
+    except:
+        st.write('Track Emotion: Not Detected')
+
+# def get_lyrics_by_artist(arr, k):
+#     c = 0
+#     for name in arr:
+#         try:
+#             songs = (genius.search_artist(name, max_songs=k, sort='popularity')).songs
+#             s = [song.lyrics for song in songs]
+#             file.write("\n \n   <|endoftext|>   \n \n".join(s))
+#             c += 1
+#             print(f"Songs grabbed:{len(s)}")
+#         except:
+#             print(f"some exception at {name}: {c}")
+
+
+def get_lyrics_by_song(song, arr):
+    try:
+        songs = (genius.search_song(song, arr)).lyrics
+        print(f"Songs grabbed.")
+    except:
+        print("exception")
+    return songs
+
+def remove_stop_words(text):
+    stop_words = stopwords.words('english')
+    new_stop_words = ['ooh', 'yeah', 'hey', 'whoa', 'woah', 'ohh', 'was', 'mmm', 'oooh', 'yah', 'yeh', 'mmm', 'hmm',
+                      'deh', 'doh', 'jah', 'wa']
+    stop_words.extend(new_stop_words)
+    word_tokens = word_tokenize(text)
+    filtered_sentence = [w for w in word_tokens if not w in stop_words]
+    return filtered_sentence
+
+
+def apply_lemmatization(text):
+    lem = WordNetLemmatizer()
+    word_list = word_tokenize(text)
+    output = ' '.join([lem.lemmatize(w) for w in word_list])
+    return output
+
+
+# text preprocessing
+def normalize(text):
+    text = re.sub('[^a-zA-Z]', ' ', str(text))
+    text = text.lower()
+    text = re.sub("&lt;/?.*?&gt;", " &lt;&gt; ", text)
+    text = re.sub("(\\d|\\W)+", " ", text)
+    text = ' '.join(remove_stop_words(text))
+    text = apply_lemmatization(text)
+    return text
 
 # SVG Logo
 logo_svg = """
@@ -199,6 +298,8 @@ with st.container():
             for track in tracks_list:
                 str_temp = f"{track['name']} By {track['artists'][0]['name']}"
                 if str_temp == selected_track:
+                    track_name = track['name']
+                    artist_name = track['artists'][0]['name']
                     track_id = track['id']
                     track_album = track['album']['name']
                     album_img_url = track['album']['images'][1]['url']
@@ -219,31 +320,110 @@ with st.container():
                 df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
                 st.dataframe(df_features)
 
-                labels = list(df_features)[:]
-                stats = df_features.mean().tolist()
+                # Create a radar chart using Plotly
+                fig = px.line_polar(df_features, r=list(df_features.iloc[0]), theta=list(df_features.columns), line_close=True)
 
-                angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False)
+                # Customize the layout of the radar chart
+                fig.update_layout(
+                    polar=dict(radialaxis=dict(visible=True, range=[0, 1],tickfont_color='black')),
+                    showlegend=False,
+                    width=550,  # Adjust width as needed
+                    height=500,  # Adjust height as needed
+                    margin=dict(l=0, r=0, t=50, b=0)  # Adjust margins as needed
+                )
 
-                # close the plot
-                stats = np.concatenate((stats,[stats[0]]))
-                angles = np.concatenate((angles,[angles[0]]))
+                # Display the Plotly radar chart in Streamlit
+                st.plotly_chart(fig)
 
-                #Size of the figure
-                fig = plt.figure(figsize = (18,18))
+                # Retrieving and Classifying Lyrics
+                tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion")
+                model = AutoModelForSeq2SeqLM.from_pretrained("mrm8488/t5-base-finetuned-emotion")
 
-                ax = fig.add_subplot(221, polar=True)
-                ax.plot(angles, stats, 'o-', linewidth=2, label = "Features", color= 'gray')
-                ax.fill(angles, stats, alpha=0.25, facecolor='gray')
-                ax.set_thetagrids(angles[0:7] * 180/np.pi, labels , fontsize = 13)
+                token = LG_TOKEN
+                genius = Genius(token, timeout = 200, verbose = False, excluded_terms=["(Remix)", "(Live)"], remove_section_headers = True)
 
+                st.write(track_name, artist_name)
+                song_emotion(track_name, artist_name)
 
-                ax.set_rlabel_position(250)
-                plt.yticks([0.2 , 0.4 , 0.6 , 0.8  ], ["0.2",'0.4', "0.6", "0.8"], color="grey", size=12)
-                plt.ylim(0,1)
+                # Get song lyrics
+                if track_name and artist_name:
+                    # Search for the song using the Genius API
+                    songs = genius.search_songs(track_name + ' ' + artist_name) #Finding all searches
+                    try:
+                        lyrics = genius.lyrics(song_url = songs['hits'][0]['result']['url']) #Returning the first song's lyrics
+                        lyrics = lyrics.split('Lyrics\n', 1)[1] #Removing the title
+                        lyrics = lyrics.split('Embed')[0] #Removing the end
 
-                plt.legend(loc='best', bbox_to_anchor=(0.1, 0.1))
+                        st.subheader(f"Lyrics for '{track_name}' by {artist_name}")
+                        st.text_area("Lyrics", lyrics, height=400)
+                    except:
+                        print('')
+
+                # Create word cloud
+                raw = get_lyrics_by_song(track_name, artist_name)
+                raw2 = raw.replace('\n', ' ')
+                raw2 = raw2.split(' ')
                 
+                lyric_corpus_tokenized = []
+                tokenizer = RegexpTokenizer(r'\w+')
+                for lyric in raw2:
+                    tokenized_lyric = tokenizer.tokenize(lyric.lower())  # tokenize and lower each lyric
+                    lyric_corpus_tokenized.append(lyric)
+
+                processed_text = []
+                for i in lyric_corpus_tokenized:
+                    text = normalize(i)
+                    processed_text.append(text)
+
+                final_corpus = []
+                for s, song in enumerate(processed_text):
+                    if len(song) > 2 and not song.isnumeric() and song != '':
+                        final_corpus.append(song)
+                # create word cloud image
+                wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(raw)
+                plt.figure()
+                plt.imshow(wordcloud, interpolation="bilinear")
+                plt.axis("off")
                 st.pyplot(plt)
+                # token by frequency table in word cloud image
+                word_count = WordCloud().process_text(raw)
+                word_count_df = pd.DataFrame.from_dict(word_count, orient='index').reset_index()
+                word_count_df = word_count_df.rename(columns={"index": "Token", 0: "Frequency"})
+                word_count_df = word_count_df.sort_values(by=['Frequency'], ascending=False).reset_index(drop=True)
+                st.dataframe(word_count_df)
+
+                # top 10 tokens with the highest mean tf-idf values
+                # Tfidf = TfidfVectorizer(use_idf=True, ngram_range=(1, 1), norm=None)
+                # TFIDF_matrix = Tfidf.fit_transform(final_corpus)
+                # words = Tfidf.get_feature_names_out()
+                # matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=words)
+                # doc_term_matrix = TFIDF_matrix.todense()
+                # doc_term_df = pd.DataFrame(doc_term_matrix, columns=Tfidf.get_feature_names_out())
+                # top10_tfidf = pd.DataFrame(doc_term_df.mean().sort_values(ascending=False).head(10))
+                # top10_tfidf.rename(columns={0: 'Mean TF-IDF'}, inplace=True)
+                # print(top10_tfidf)
+
+                # # topic modeling - LDA
+                # dictionary = Dictionary([final_corpus])
+                # gensim_corpus = [dictionary.doc2bow(song) for song in [final_corpus]]
+                # temp = dictionary[0]
+                # id2word = dictionary.id2token
+                # num_topics = 3
+
+                # lda_model = LdaModel(corpus=gensim_corpus, id2word=id2word, chunksize=2000, alpha='auto', eta='auto',
+                #                     iterations=400,
+                #                     num_topics=num_topics, passes=20
+                #                     )
+
+                # print(lda_model.print_topics(num_topics=num_topics, num_words=10))
+
+                # vis_data = gensimvis.prepare(lda_model, gensim_corpus, dictionary)
+                # pyLDAvis.display(vis_data)
+
+                # vis_html = pyLDAvis.prepared_data_to_html(vis_data)
+                # st.components.v1.html(vis_html, width=800, height=600)
+
+
 
             elif selected_track_choice == 'Similar Songs Recommendation':
                 # Get Spotify token
