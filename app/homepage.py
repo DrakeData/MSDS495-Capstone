@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import requests
 import spotipy
 import os
@@ -10,13 +9,14 @@ from PIL import Image, ImageColor
 import random
 import re
 import plotly.express as px
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from wordcloud import WordCloud, STOPWORDS
 from spotipy.oauth2 import SpotifyClientCredentials
 from nltk.tokenize import RegexpTokenizer
 from streamlit_option_menu import option_menu
 from streamlit_extras.switch_page_button import switch_page
 from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
 import lyric_nlp
+
 
 # ---- MAIN TAB SECTION ----
 # emoji cheatsheet: https://www.webfx.com/tools/emoji-cheat-sheet/
@@ -575,3 +575,13 @@ with st.container():
                                     else:
                                         st.write(df_top_tracks_main['track_name'][idx])
                                         st.write("Artist does not provide sample tracks")
+# Ad
+st.image("images/ad_img/listr_premium_ad_2.png")
+
+left_col, center_col, right_col = st.columns([2, 1, 2])
+with left_col:
+    st.write("")
+with center_col:
+    st.write("© 2023 LISTR")
+with right_col:
+    st.write("")

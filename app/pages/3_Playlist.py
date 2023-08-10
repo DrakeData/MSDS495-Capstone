@@ -309,3 +309,13 @@ with st.container():
             playlist = sp2.user_playlist_create(sp.me()["id"], f"{playlist_name}_listr", public=True)
             sp2.playlist_add_items(playlist["id"], track_ids_ls)
             st.success(f"Playlist '{playlist_name}_listr' created with {len(track_ids_ls)} tracks!")
+# Ad
+st.image("images/ad_img/listr_premium_ad_2.png")
+
+left_col, center_col, right_col = st.columns([2, 1, 2])
+with left_col:
+    st.write("")
+with center_col:
+    st.write("© 2023 LISTR")
+with right_col:
+    st.write("")
