@@ -354,7 +354,7 @@ with st.container():
                 url = "https://accounts.spotify.com/api/token"
                 headers = {}
                 data = {}
-                message = f"{SPOTIFY_CLIENT_KEY}:{SPOTIFY_SECRET_KEY}"
+                message = f"{st.secrests['SPOTIFY_CLIENT_KEY']}:{st.secrets['SPOTIFY_SECRET_KEY']}"
                 messageBytes = message.encode('ascii')
                 base64Bytes = base64.b64encode(messageBytes)
                 base64Message = base64Bytes.decode('ascii')

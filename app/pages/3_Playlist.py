@@ -289,8 +289,8 @@ with st.container():
         if button_clicked2 and len(track_ids_ls) > 0 and playlist_name:
 
             # Spotify API Authentication
-            CLIENT_ID = SPOTIFY_CLIENT_KEY
-            CLIENT_SECRET = SPOTIFY_SECRET_KEY
+            CLIENT_ID = st.secrets['SPOTIFY_CLIENT_KEY']
+            CLIENT_SECRET = st.secrets['SPOTIFY_SECRET_KEY']
             REDIRECT_URI = 'http://localhost:7777/callback'
 
             # Define the scope for the required permissions
