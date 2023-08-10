@@ -1,14 +1,10 @@
 import re
 import streamlit as st
 import nltk
-import wordcloud
-import sklearn
 import matplotlib.pyplot as plt
-import gensim
-import pyLDAvis
 from lyricsgenius import Genius
 import pyLDAvis.gensim_models as gensimvis
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, T5ForConditionalGeneration
 from config import LG_TOKEN
 
 from gensim.corpora import Dictionary
@@ -28,8 +24,8 @@ nltk.download('punkt', quiet=True)
 nltk.download('omw-1.4', quiet=True)
 
 # Retrieving and Classifying Lyrics
-tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion")
-model = AutoModelForSeq2SeqLM.from_pretrained("mrm8488/t5-base-finetuned-emotion")
+tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion", use_fast=False)
+model = T5ForConditionalGeneration.from_pretrained("mrm8488/t5-base-finetuned-emotion")
 
 token = LG_TOKEN
 genius = Genius(token, timeout = 200, verbose = False, excluded_terms=["(Remix)", "(Live)"], remove_section_headers = True)
