@@ -117,6 +117,9 @@ logo_svg = """
 </svg>
     """
 
+# function to divide a list of uris (or ids) into chuncks of 50.
+chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
+
 # Spotify API Authentication
 auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
 sp = spotipy.Spotify(auth_manager=auth_manager)
@@ -406,15 +409,61 @@ with st.container():
             df_album_tracks = pd.DataFrame(album_tracks['items'])
             # st.dataframe(df_album_tracks)
             df_tracks_min = df_album_tracks.loc[:,
-                            ['id', 'name', 'duration_ms', 'explicit', 'preview_url']]
-            st.dataframe(df_tracks_min)
+                            ['id', 'name', 'explicit', 'preview_url']]
+            df_tracks_min = df_tracks_min.rename(columns={'id':'track_id', 'name':'track_name'})
+            # st.dataframe(df_tracks_min)
+
+            # Get list of track IDs
+            df_df_track_id = df_tracks_min['track_id'].unique().tolist()
+
+            # using the function
+            album_track_chunks = chunker(df_df_track_id, 100)
+
+            # Get track details
+            track_features_ls = []
+
+            for t_id in album_track_chunks:
+                track_features  = sp.audio_features(t_id)
+                track_features_ls.append(track_features)
+
+            album_track_features_df = pd.DataFrame(track_features_ls[0])
+            album_track_features_df = album_track_features_df.rename(columns={'id':'track_id'})
+
+            album_tracks_main = df_tracks_min.merge(album_track_features_df, on='track_id', how='left')
+
+            # Convert mill second to hours, minutes, seconds
+            millis=album_tracks_main['duration_ms']
+            album_tracks_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
+            
+            st.dataframe(album_tracks_main)
+
+
+
+            # Danceability vs. Energy - Scatter Plot
+            dance_eng = album_tracks_main[['track_name','danceability', 'energy']]
+            dance_eng = dance_eng.rename(columns={'danceability':'Danceability',
+                                                'energy': 'Energy'})
+
+            fig1 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name'],
+                    title='Danceability vs. Energy of Listened Tracks')
+            st.plotly_chart(fig1)
+
+            # List of audio features for the box plot
+            audio_features = ['danceability', 'energy', 'valence']
+
+            # Create the Track Analysis Distribution using a Box Plot
+            fig2 = px.box(album_tracks_main, y=audio_features, title='Track Analysis Distribution',
+                        labels={'variable': 'Audio Features', 'value': 'Value'},
+                        boxmode='group'  # 'group' for side-by-side boxes, 'overlay' for overlapping boxes
+                        )
+            st.plotly_chart(fig2)
 
             button_clicked2 = st.button("See Sample Tracks")
 
             if button_clicked2 is not False:
                 for idx in df_tracks_min.index:
                         with st.container():
-                            st.write(df_tracks_min['name'][idx])
+                            st.write(df_tracks_min['track_name'][idx])
                             if df_tracks_min['preview_url'][idx] is not None:
                                 st.audio(df_tracks_min['preview_url'][idx], format="audio/mp3")
 
@@ -444,74 +493,85 @@ with st.container():
                         
             if selected_artist_choice is not None:
                 if selected_artist_choice == 'Albums':
+                    # st.write(artist_id)
                     artist_uri = 'spotify:artist:' + artist_id
                     album_result = sp.artist_albums(artist_uri, album_type='album') 
                     all_albums = album_result['items']
-                    col1, col2, col3 = st.columns((6,4,2))
+
+                    album_name_ls = []
+                    album_release_ls = []
+                    album_track_count = []
                     for album in all_albums:
-                        col1.write(album['name'])
-                        col2.write(album['release_date'])
-                        col3.write(album['total_tracks'])
+                        album_name_ls.append(album['name'])
+                        album_release_ls.append(album['release_date'])
+                        album_track_count.append(album['total_tracks'])
+
+                    zipped_artist = list(zip(album_name_ls, album_release_ls, album_track_count))
+                    df_art_albm = pd.DataFrame(zipped_artist, columns=['album_name', 'album_release', 'track_count'])
+
+                    st.dataframe(df_art_albm, hide_index=True)
+
                 elif selected_artist_choice == 'Top Songs':
                     artist_uri = 'spotify:artist:' + artist_id
                     top_songs_result = sp.artist_top_tracks(artist_uri)
+                    
+                    top_tracks_id_ls = []
+                    top_tracks_name_ls = []
+                    top_tracks_prev_ls = []
+                    
                     for track in top_songs_result['tracks']:
-                        st.write(track['id'])
-                        with st.container():
-                            col1, col2, col3, col4 = st.columns((4,4,2,2))
-                            col11, col12 = st.columns((10,2))
-                            col21, col22 = st.columns((11,1))
-                            col31, col32 = st.columns((11,1))
-                            col1.write(track['id'])
-                            col2.write(track['name'])
-                            if track['preview_url'] is not None:
-                                col11.write(track['preview_url'])  
-                                with col12:   
-                                    st.audio(track['preview_url'], format="audio/mp3")  
-                            with col3:
-                                def feature_requested():
-                                    track_features  = sp.audio_features(track['id']) 
-                                    df = pd.DataFrame(track_features, index=[0])
-                                    df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
-                                    with col21:
-                                        st.dataframe(df_features)
-                                    with col31:
-                                        labels= list(df_features)[:]
-                                        stats= df_features.mean().tolist()
-                                        
-                                        angles=np.linspace(0, 2*np.pi, len(labels), endpoint=False)
-                                        
-                                        # close the plot
-                                        stats=np.concatenate((stats,[stats[0]]))
-                                        angles=np.concatenate((angles,[angles[0]]))
-                                        
-                                        # Size of the figure
-                                        fig=plt.figure(figsize = (18,18))
-                                        ax = fig.add_subplot(221, polar=True)
-                                        ax.plot(angles, stats, 'o-', linewidth=2, label = "Features", color= 'gray')
-                                        ax.fill(angles, stats, alpha=0.25, facecolor='gray')
-                                        ax.set_thetagrids(angles[0:7] * 180/np.pi, labels , fontsize = 13)
-                                        ax.set_rlabel_position(250)
+                        top_tracks_id_ls.append(track['id'])
+                        top_tracks_name_ls.append(track['name'])
+                        top_tracks_prev_ls.append(track['preview_url'])
 
-                                        plt.yticks([0.2 , 0.4 , 0.6 , 0.8  ], ["0.2",'0.4', "0.6", "0.8"], color="grey", size=12)
-                                        plt.ylim(0,1)
-                                        plt.legend(loc='best', bbox_to_anchor=(0.1, 0.1))
-                                        
-                                        st.pyplot(plt)
-                                    
-                                feature_button_state = st.button('Track Audio Features', key=track['id'], on_click=feature_requested)
-                            with col4:
-                                st.write("WIP")
-                                # def similar_songs_requested():
-                                #     token = songrecommendations.get_token(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET)
-                                #     similar_songs_json = songrecommendations.get_track_recommendations(track['id'], token)
-                                #     recommendation_list = similar_songs_json['tracks']
-                                #     recommendation_list_df = pd.DataFrame(recommendation_list)
-                                #     recommendation_df = recommendation_list_df[['name', 'explicit', 'duration_ms', 'popularity']]
-                                #     with col21:
-                                #         st.dataframe(recommendation_df)
-                                #     with col31:
-                                #         songrecommendations.song_recommendation_vis(recommendation_df)
+                    zipped_top_tracks = list(zip(top_tracks_id_ls, top_tracks_name_ls, top_tracks_prev_ls))
+                    df_top_tracks = pd.DataFrame(zipped_top_tracks, columns=['track_id', 'track_name', 'preview_url'])
 
-                                # similar_songs_state = st.button('Similar Songs', key=track['id'], on_click=similar_songs_requested)
-                            # st.write('----')
+                    # Get Track Featuers
+
+                    # using the function
+                    top_track_chunks = chunker(top_tracks_id_ls, 100)
+
+                    # Get track details
+                    track_features_ls = []
+
+                    for t_id in top_track_chunks:
+                        track_features  = sp.audio_features(t_id)
+                        track_features_ls.append(track_features)
+
+                    track_features_df = pd.DataFrame(track_features_ls[0])
+                    track_features_df = track_features_df.rename(columns={'id':'track_id'})
+
+                    df_top_tracks_main = df_top_tracks.merge(track_features_df, on='track_id', how='left')
+                    st.dataframe(df_top_tracks_main)
+
+                    # Danceability vs. Energy - Scatter Plot
+                    dance_eng = df_top_tracks_main[['track_name','danceability', 'energy']]
+                    dance_eng = dance_eng.rename(columns={'danceability':'Danceability',
+                                                        'energy': 'Energy'})
+
+                    fig1 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name'],
+                            title='Danceability vs. Energy of Listened Tracks')
+                    st.plotly_chart(fig1)
+
+                    # List of audio features for the box plot
+                    audio_features = ['danceability', 'energy', 'valence']
+
+                    # Create the Track Analysis Distribution using a Box Plot
+                    fig2 = px.box(df_top_tracks_main, y=audio_features, title='Track Analysis Distribution',
+                                labels={'variable': 'Audio Features', 'value': 'Value'},
+                                boxmode='group'  # 'group' for side-by-side boxes, 'overlay' for overlapping boxes
+                                )
+                    st.plotly_chart(fig2)
+
+
+                    button_clicked3 = st.button("See Sample Tracks")
+                    if button_clicked3 is not False:
+                        for idx in df_top_tracks_main.index:
+                                with st.container():
+                                    if df_top_tracks_main['preview_url'][idx] is not None:
+                                        st.write(df_top_tracks_main['track_name'][idx])
+                                        st.audio(df_top_tracks_main['preview_url'][idx], format="audio/mp3")
+                                    else:
+                                        st.write(df_top_tracks_main['track_name'][idx])
+                                        st.write("Artist does not provide sample tracks")
