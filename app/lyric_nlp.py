@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from lyricsgenius import Genius
 import pyLDAvis.gensim_models as gensimvis
 from transformers import AutoTokenizer, T5ForConditionalGeneration
-from config import LG_TOKEN
+# from config import LG_TOKEN
 
 from gensim.corpora import Dictionary
 from gensim.corpora import MmCorpus
@@ -27,7 +27,8 @@ nltk.download('omw-1.4', quiet=True)
 tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion", use_fast=False)
 model = T5ForConditionalGeneration.from_pretrained("mrm8488/t5-base-finetuned-emotion")
 
-token = LG_TOKEN
+# token = LG_TOKEN
+token = st.secrests['LG_TOKEN']
 genius = Genius(token, timeout = 200, verbose = False, excluded_terms=["(Remix)", "(Live)"], remove_section_headers = True)
 
 def get_emotion(text):

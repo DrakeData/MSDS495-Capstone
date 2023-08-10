@@ -10,7 +10,7 @@ from streamlit_extras.switch_page_button import switch_page
 from streamlit_option_menu import option_menu
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
-from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
+# from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 
 
 # ---- MAIN TAB SECTION ----
@@ -154,7 +154,8 @@ logo_svg = """
     """
 
 # Spotify API Authentication
-auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
+# auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
+auth_manager = SpotifyClientCredentials(client_id=st.secrests['SPOTIFY_CLIENT_KEY'], client_secret=st.secrets['SPOTIFY_SECRET_KEY'])
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
 # ---- HEADER SECTION ----

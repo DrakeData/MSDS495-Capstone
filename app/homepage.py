@@ -121,7 +121,8 @@ logo_svg = """
 chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
 
 # Spotify API Authentication
-auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
+# auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
+auth_manager = SpotifyClientCredentials(client_id=st.secrets["SPOTIFY_CLIENT_KEY"], client_secret=st.secrets["SPOTIFY_SECRET_KEY"])
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
 with st.container():
