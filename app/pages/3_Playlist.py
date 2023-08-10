@@ -155,7 +155,7 @@ logo_svg = """
 
 # Spotify API Authentication
 # auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
-auth_manager = SpotifyClientCredentials(client_id=st.secrests['SPOTIFY_CLIENT_KEY'], client_secret=st.secrets['SPOTIFY_SECRET_KEY'])
+auth_manager = SpotifyClientCredentials(client_id=st.secrets['SPOTIFY_CLIENT_KEY'], client_secret=st.secrets['SPOTIFY_SECRET_KEY'])
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
 # ---- HEADER SECTION ----
