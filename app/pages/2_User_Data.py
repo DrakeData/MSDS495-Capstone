@@ -4,7 +4,7 @@ import spotipy
 import plotly.express as px
 import base64
 from spotipy.oauth2 import SpotifyOAuth
-from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
+# from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 import re
 from datetime import datetime
 from streamlit_option_menu import option_menu

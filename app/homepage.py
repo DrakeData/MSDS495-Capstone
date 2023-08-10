@@ -14,7 +14,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from nltk.tokenize import RegexpTokenizer
 from streamlit_option_menu import option_menu
 from streamlit_extras.switch_page_button import switch_page
-from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
+# from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
 import lyric_nlp
 
 
