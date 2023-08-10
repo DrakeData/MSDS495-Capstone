@@ -28,7 +28,7 @@ tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion", u
 model = T5ForConditionalGeneration.from_pretrained("mrm8488/t5-base-finetuned-emotion")
 
 # token = LG_TOKEN
-token = st.secrets['LG_TOKEN']
+token = st.secrets["LG_TOKEN"]
 genius = Genius(token, timeout = 200, verbose = False, excluded_terms=["(Remix)", "(Live)"], remove_section_headers = True)
 
 def get_emotion(text):

@@ -120,9 +120,12 @@ logo_svg = """
 # function to divide a list of uris (or ids) into chuncks of 50.
 chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
 
+SPOTIFY_CLIENT_KEY = st.secrets["SPOTIFY_CLIENT_KEY"]
+SPOTIFY_SECRET_KEY = st.secrets["SPOTIFY_SECRET_KEY"]
+
 # Spotify API Authentication
 # auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
-auth_manager = SpotifyClientCredentials(client_id=st.secrets["SPOTIFY_CLIENT_KEY"], client_secret=st.secrets["SPOTIFY_SECRET_KEY"])
+auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
 with st.container():
@@ -354,7 +357,7 @@ with st.container():
                 url = "https://accounts.spotify.com/api/token"
                 headers = {}
                 data = {}
-                message = f"{st.secrets['SPOTIFY_CLIENT_KEY']}:{st.secrets['SPOTIFY_SECRET_KEY']}"
+                message = f"{SPOTIFY_CLIENT_KEY}:{SPOTIFY_SECRET_KEY}"
                 messageBytes = message.encode('ascii')
                 base64Bytes = base64.b64encode(messageBytes)
                 base64Message = base64Bytes.decode('ascii')

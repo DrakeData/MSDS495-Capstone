@@ -155,7 +155,11 @@ logo_svg = """
 
 # Spotify API Authentication
 # auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
-auth_manager = SpotifyClientCredentials(client_id=st.secrets['SPOTIFY_CLIENT_KEY'], client_secret=st.secrets['SPOTIFY_SECRET_KEY'])
+
+SPOTIFY_CLIENT_KEY = st.secrets["SPOTIFY_CLIENT_KEY"]
+SPOTIFY_SECRET_KEY = st.secrets["SPOTIFY_SECRET_KEY"]
+
+auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
 # ---- HEADER SECTION ----
@@ -289,8 +293,8 @@ with st.container():
         if button_clicked2 and len(track_ids_ls) > 0 and playlist_name:
 
             # Spotify API Authentication
-            CLIENT_ID = st.secrets['SPOTIFY_CLIENT_KEY']
-            CLIENT_SECRET = st.secrets['SPOTIFY_SECRET_KEY']
+            CLIENT_ID = st.secrets["SPOTIFY_CLIENT_KEY"]
+            CLIENT_SECRET = st.secrets["SPOTIFY_SECRET_KEY"]
             REDIRECT_URI = 'http://localhost:7777/callback'
 
             # Define the scope for the required permissions
