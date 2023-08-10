@@ -5,59 +5,39 @@ import requests
 import spotipy
 import os
 import matplotlib.pyplot as plt
-import seaborn as sns
 import base64
-import textwrap
-from PIL import Image
-import plotly.express as px
-from spotipy.oauth2 import SpotifyClientCredentials
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from lyricsgenius import Genius
-from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
-
+from PIL import Image, ImageColor
+import random
 import re
-import nltk
-import wordcloud
-import sklearn
-import matplotlib.pyplot as plt
-import gensim
-import pyLDAvis
-import pyLDAvis.gensim_models as gensimvis
-
-from gensim.corpora import Dictionary
-from gensim.corpora import MmCorpus
-from gensim.models import LdaModel
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
+import plotly.express as px
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-from nltk.corpus import stopwords
-from nltk.stem.wordnet import WordNetLemmatizer
+from spotipy.oauth2 import SpotifyClientCredentials
 from nltk.tokenize import RegexpTokenizer
-from nltk.stem import PorterStemmer
-from nltk.tokenize import word_tokenize
-
-nltk.download('stopwords', quiet=True)
-nltk.download('wordnet', quiet=True)
-nltk.download('punkt', quiet=True)
-nltk.download('omw-1.4', quiet=True)
-
+from streamlit_option_menu import option_menu
+from streamlit_extras.switch_page_button import switch_page
+from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
+import lyric_nlp
 
 # ---- MAIN TAB SECTION ----
 # emoji cheatsheet: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(
     page_title="MSDS 498: Capstone Project", 
     page_icon=":musical_note:", 
-    layout="wide"
+    layout="centered",
+    initial_sidebar_state="collapsed"
     )
 
-# ---- REMOVE SIDEBAR EXTRA SPACING UPTOP ----
-st.markdown("""
-  <style>
-    div.css-1pd56a0.e1tzin5v0 {
-      margin-top: -75px;
+# ---- Hide Sidebar ----
+st.markdown(
+    """
+<style>
+    [data-testid="collapsedControl"] {
+        display: none
     }
-  </style>
-""", unsafe_allow_html=True)
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 
 # ---- REMOVE MAIN PAGE EXTRA SPACING UPTOP ----
@@ -81,79 +61,9 @@ def render_svg(svg):
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     st.write(html, unsafe_allow_html=True)
 
-def get_emotion(text):
-    input_ids = tokenizer.encode(text + '</s>', return_tensors='pt', max_length = 512, truncation = True)
-
-    output = model.generate(input_ids=input_ids,
-               max_length=2)
-  
-    dec = [tokenizer.decode(ids) for ids in output]
-    label = dec[0]
-    return label
-
-def song_emotion(track_name, artist):
-    songs = genius.search_songs(track_name + ' ' + artist) #Finding all searches
-    try:
-        lyrics = genius.lyrics(song_url = songs['hits'][0]['result']['url']) #Returning the first song's lyrics
-        lyrics = lyrics.split('Lyrics\n', 1)[1] #Removing the title
-        lyrics = lyrics.split('Embed')[0] #Removing the end
-        lyrics = lyrics.replace('\n', ' ') #Removing line breaks from string
-        track_emotion = get_emotion(lyrics).split(' ')[1]
-        st.write(f'Track Emotion: {track_emotion}')
-    except:
-        st.write('Track Emotion: Not Detected')
-
-# def get_lyrics_by_artist(arr, k):
-#     c = 0
-#     for name in arr:
-#         try:
-#             songs = (genius.search_artist(name, max_songs=k, sort='popularity')).songs
-#             s = [song.lyrics for song in songs]
-#             file.write("\n \n   <|endoftext|>   \n \n".join(s))
-#             c += 1
-#             print(f"Songs grabbed:{len(s)}")
-#         except:
-#             print(f"some exception at {name}: {c}")
-
-
-def get_lyrics_by_song(song, arr):
-    try:
-        songs = (genius.search_song(song, arr)).lyrics
-        print(f"Songs grabbed.")
-    except:
-        print("exception")
-    return songs
-
-def remove_stop_words(text):
-    stop_words = stopwords.words('english')
-    new_stop_words = ['ooh', 'yeah', 'hey', 'whoa', 'woah', 'ohh', 'was', 'mmm', 'oooh', 'yah', 'yeh', 'mmm', 'hmm',
-                      'deh', 'doh', 'jah', 'wa']
-    stop_words.extend(new_stop_words)
-    word_tokens = word_tokenize(text)
-    filtered_sentence = [w for w in word_tokens if not w in stop_words]
-    return filtered_sentence
-
-
-def apply_lemmatization(text):
-    lem = WordNetLemmatizer()
-    word_list = word_tokenize(text)
-    output = ' '.join([lem.lemmatize(w) for w in word_list])
-    return output
-
-
-# text preprocessing
-def normalize(text):
-    text = re.sub('[^a-zA-Z]', ' ', str(text))
-    text = text.lower()
-    text = re.sub("&lt;/?.*?&gt;", " &lt;&gt; ", text)
-    text = re.sub("(\\d|\\W)+", " ", text)
-    text = ' '.join(remove_stop_words(text))
-    text = apply_lemmatization(text)
-    return text
-
 # SVG Logo
 logo_svg = """
-        <svg width="400px" height="150px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        <svg width="250px" height="75px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	  style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
 <g>
 	<path d="M736.79,198.01c-5.63-12.99-11.14-26.04-17.02-38.93c-2.11-4.63-2.64-7.55,1.97-11.66c4.05-3.6,7.17-9.5,8.25-14.88
@@ -211,17 +121,57 @@ logo_svg = """
 auth_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_KEY, client_secret=SPOTIFY_SECRET_KEY)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
+with st.container():
+    left_col, right_col = st.columns([1,2])
+    with left_col:
+        render_svg(logo_svg)
+    with right_col:
+        search_page = option_menu(
+            menu_title=None,
+            options=["Search", "User Data", "Playlist"],
+            icons=["search", "person-circle", "vinyl"],
+            menu_icon="cast",
+            default_index=0,
+            orientation="horizontal",
+            styles={
+        "container": {"padding": "0!important", "text-align": "center"},
+        "icon": {"color": "orange", "font-size": "18px"}, 
+        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        # "nav-link-selected": {"background-color": "green"},
+    }
+    )
+        # if search_page == "Search":
+        #     switch_page("homepage")
+        if search_page == 'User Data':
+            switch_page("User Data")
+        if search_page == 'Playlist':
+            switch_page("Playlist")
+
 # ---- HEADER SECTION ----
 with st.container():
-    render_svg(logo_svg)
-
-# Create Sidebar
-search_options = ["Track", "Artist", "Album"]
-search_selected = st.sidebar.selectbox("Search Options: ", search_options)
+    left_col, right_col = st.columns(2)
+    with left_col:
+        st.write("")
+    with right_col:
+        search_selected = option_menu(
+            menu_title=None,
+            options=["Track", "Artist", "Album"],
+            icons=["music-note", "person-fill", "music-note-list"],
+            menu_icon="cast",
+            default_index=0,
+            orientation="horizontal",
+            styles={
+        "container": {"padding": "0!important"},
+        "icon": {"color": "orange", "font-size": "18px"}, 
+        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        # "nav-link-selected": {"background-color": "green"},
+    }
+)
+        st.write(f"Searching by: {search_selected}")
 
 if search_selected == "Track":
     # User interactive search
-    left_col, right_col = st.columns(2)
+    left_col, right_col = st.columns([2, 1])
     with left_col:
         search_keyword = st.text_input(f"{search_selected} (Type in {search_selected} name)")
     with right_col:
@@ -321,48 +271,41 @@ with st.container():
                 st.dataframe(df_features)
 
                 # Create a radar chart using Plotly
-                fig = px.line_polar(df_features, r=list(df_features.iloc[0]), theta=list(df_features.columns), line_close=True)
+                fig = px.bar_polar(df_features, r=list(df_features.iloc[0]), theta=list(df_features.columns),
+                   color_discrete_sequence = ['#4f9da6'])
 
                 # Customize the layout of the radar chart
                 fig.update_layout(
-                    polar=dict(radialaxis=dict(visible=True, range=[0, 1],tickfont_color='black')),
-                    showlegend=False,
-                    width=550,  # Adjust width as needed
+                    polar = dict(radialaxis=dict(visible = False, showticklabels = False)),
+                    showlegend = False,
+                    width=600,  # Adjust width as needed
                     height=500,  # Adjust height as needed
                     margin=dict(l=0, r=0, t=50, b=0)  # Adjust margins as needed
                 )
+                
+                fig.update_polars(bgcolor = "rgba(34, 48, 66, .2)")
 
                 # Display the Plotly radar chart in Streamlit
                 st.plotly_chart(fig)
-
-                # Retrieving and Classifying Lyrics
-                tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion")
-                model = AutoModelForSeq2SeqLM.from_pretrained("mrm8488/t5-base-finetuned-emotion")
-
-                token = LG_TOKEN
-                genius = Genius(token, timeout = 200, verbose = False, excluded_terms=["(Remix)", "(Live)"], remove_section_headers = True)
-
                 st.write(track_name, artist_name)
-                song_emotion(track_name, artist_name)
+
+                # Clean track name to remove ()
+                track_name_clean = re.sub(' [\(\[].*?[\)\]]', '', track_name)
+                
+                # Get song emotion
+                lyric_nlp.song_emotion(track_name_clean, artist_name)
 
                 # Get song lyrics
-                if track_name and artist_name:
-                    # Search for the song using the Genius API
-                    songs = genius.search_songs(track_name + ' ' + artist_name) #Finding all searches
-                    try:
-                        lyrics = genius.lyrics(song_url = songs['hits'][0]['result']['url']) #Returning the first song's lyrics
-                        lyrics = lyrics.split('Lyrics\n', 1)[1] #Removing the title
-                        lyrics = lyrics.split('Embed')[0] #Removing the end
-
-                        st.subheader(f"Lyrics for '{track_name}' by {artist_name}")
-                        st.text_area("Lyrics", lyrics, height=400)
-                    except:
-                        print('')
+                if track_name_clean and artist_name:
+                    lyric_nlp.show_lyrics(track_name_clean, artist_name)
 
                 # Create word cloud
-                raw = get_lyrics_by_song(track_name, artist_name)
+                raw = lyric_nlp.get_lyrics_by_song(track_name_clean, artist_name)
                 raw2 = raw.replace('\n', ' ')
                 raw2 = raw2.split(' ')
+                raw3 = raw.split('Lyrics\n', 1)[1]
+                raw3 = raw3.split('Embed')[0]
+                raw3 = raw3.replace('\n', ' ')
                 
                 lyric_corpus_tokenized = []
                 tokenizer = RegexpTokenizer(r'\w+')
@@ -372,15 +315,25 @@ with st.container():
 
                 processed_text = []
                 for i in lyric_corpus_tokenized:
-                    text = normalize(i)
+                    text = lyric_nlp.normalize(i)
                     processed_text.append(text)
 
                 final_corpus = []
                 for s, song in enumerate(processed_text):
                     if len(song) > 2 and not song.isnumeric() and song != '':
                         final_corpus.append(song)
+
+                # set up wordcloud colors & parameters
+                col_diverging = ['#408487','#4F9DA6','#71C5C9','#96EAEA','#AEFFFF','#FFDC83', '#F7D47C','#F9CF5A','#E2B74B','#C69C3E','#E3FFFE','#FFEABB']
+
+                def color(word=None, font_size=None, position=None,  orientation=None, font_path=None, random_state=44, **kwargs):
+                    return ImageColor.getcolor(col_diverging[random.randint(0,len(col_diverging)-1)], 'RGB')
+                
+                stopwords = set(STOPWORDS)
+                    
                 # create word cloud image
-                wordcloud = WordCloud(max_font_size=50, max_words=100, background_color="white").generate(raw)
+                wordcloud = WordCloud(width = 1000, height = 500, max_words = 100, background_color = '#223042',
+                color_func =  color, stopwords = stopwords, normalize_plurals = True, collocations = False).generate(raw3)
                 plt.figure()
                 plt.imshow(wordcloud, interpolation="bilinear")
                 plt.axis("off")
@@ -391,39 +344,6 @@ with st.container():
                 word_count_df = word_count_df.rename(columns={"index": "Token", 0: "Frequency"})
                 word_count_df = word_count_df.sort_values(by=['Frequency'], ascending=False).reset_index(drop=True)
                 st.dataframe(word_count_df)
-
-                # top 10 tokens with the highest mean tf-idf values
-                # Tfidf = TfidfVectorizer(use_idf=True, ngram_range=(1, 1), norm=None)
-                # TFIDF_matrix = Tfidf.fit_transform(final_corpus)
-                # words = Tfidf.get_feature_names_out()
-                # matrix = pd.DataFrame(TFIDF_matrix.toarray(), columns=words)
-                # doc_term_matrix = TFIDF_matrix.todense()
-                # doc_term_df = pd.DataFrame(doc_term_matrix, columns=Tfidf.get_feature_names_out())
-                # top10_tfidf = pd.DataFrame(doc_term_df.mean().sort_values(ascending=False).head(10))
-                # top10_tfidf.rename(columns={0: 'Mean TF-IDF'}, inplace=True)
-                # print(top10_tfidf)
-
-                # # topic modeling - LDA
-                # dictionary = Dictionary([final_corpus])
-                # gensim_corpus = [dictionary.doc2bow(song) for song in [final_corpus]]
-                # temp = dictionary[0]
-                # id2word = dictionary.id2token
-                # num_topics = 3
-
-                # lda_model = LdaModel(corpus=gensim_corpus, id2word=id2word, chunksize=2000, alpha='auto', eta='auto',
-                #                     iterations=400,
-                #                     num_topics=num_topics, passes=20
-                #                     )
-
-                # print(lda_model.print_topics(num_topics=num_topics, num_words=10))
-
-                # vis_data = gensimvis.prepare(lda_model, gensim_corpus, dictionary)
-                # pyLDAvis.display(vis_data)
-
-                # vis_html = pyLDAvis.prepared_data_to_html(vis_data)
-                # st.components.v1.html(vis_html, width=800, height=600)
-
-
 
             elif selected_track_choice == 'Similar Songs Recommendation':
                 # Get Spotify token

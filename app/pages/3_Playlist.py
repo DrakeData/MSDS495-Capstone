@@ -1,15 +1,13 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import requests
 import spotipy
-import os
-import matplotlib.pyplot as plt
-import seaborn as sns
 import base64
 from sklearn.cluster import KMeans
-import textwrap
+import plotly.express as px
 from PIL import Image
+from streamlit_option_menu import option_menu
+from streamlit_extras.switch_page_button import switch_page
+from streamlit_option_menu import option_menu
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
 from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
@@ -20,18 +18,21 @@ from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 st.set_page_config(
     page_title="MSDS 498: Capstone Project", 
     page_icon=":musical_note:", 
-    layout="wide"
+    layout="centered",
+    initial_sidebar_state="collapsed"
     )
 
-# ---- REMOVE SIDEBAR EXTRA SPACING UPTOP ----
-st.markdown("""
-  <style>
-    div.css-1pd56a0.e1tzin5v0 {
-      margin-top: -75px;
+# ---- Hide Sidebar ----
+st.markdown(
+    """
+<style>
+    [data-testid="collapsedControl"] {
+        display: none
     }
-  </style>
-""", unsafe_allow_html=True)
-
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 # ---- REMOVE MAIN PAGE EXTRA SPACING UPTOP ----
 st.markdown("""
@@ -54,65 +55,51 @@ def render_svg(svg):
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     st.write(html, unsafe_allow_html=True)
 
-def show_tracks(results, uriArray):
-    for i, item in enumerate(results['items']):
-        track = item['track']
-        uriArray.append(track['id'])
+def GetPlaylistTrackDetails(playlist_id):
+    results = sp.playlist_tracks(playlist_id)
+    track_id_ls = []
+    track_name_ls = []
+    artist_name_ls = []
+    album_name_ls = []
+    popularity_ls = []
+    release_date_ls = []
 
-def track_id(username, playlist_id):
-    trackID = []
-    results = sp.user_playlist(username, playlist_id)
-    tracks = results['tracks']
-    show_tracks(tracks, trackID)
-    while tracks['next']:
-        tracks = sp.next(tracks)
-        show_tracks(tracks, trackID)
-    return trackID
+    for i in range(len(results['items'])):
+        track_id_ls.append(results['items'][i]['track']['id'])
+        track_name_ls.append(results['items'][i]['track']['name'])
+        artist_name_ls.append(results['items'][i]['track']['artists'][0]['name'])
+        album_name_ls.append(results['items'][i]['track']['album']['name'])
+        popularity_ls.append(results['items'][i]['track']['popularity'])
+        release_date_ls.append(results['items'][i]['track']['album']['release_date'])
 
-def getTrackFeatures(id):
-    meta = sp.track(id)
-    features = sp.audio_features(id)
+    zipped = list(zip(track_id_ls, track_name_ls, artist_name_ls, album_name_ls, popularity_ls, release_date_ls))
+
+    df = pd.DataFrame(zipped, columns=['track_id', 'track_name', 'artist', 'album', 'popularity', 'release_date'])
     
-    track_id = meta['id']
-    name = meta['name']
-    album = meta['album']['name']
-    artist = meta['album']['artists'][0]['name']
-    release_date = meta['album']['release_date']
-    length = meta['duration_ms']
-    popularity = meta['popularity']
-    acousticness = features[0]['acousticness']
-    danceability = features[0]['danceability']
-    valence = features[0]['valence']
-    energy = features[0]['energy']
-    instrumentalness = features[0]['instrumentalness']
-    liveness = features[0]['liveness']
-    loudness = features[0]['loudness']
-    speechiness = features[0]['speechiness']
-    tempo = features[0]['tempo']
-    time_signature = features[0]['time_signature']
+    # get track details
+    # function to divide a list of uris (or ids) into chuncks of 50.
+    chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
 
-    track = [track_id, name, album, artist, release_date, length, popularity, 
-             acousticness, danceability, valence, energy, instrumentalness, liveness, loudness, 
-             speechiness, tempo, time_signature]
-    return track
+    # using the function
+    track_chunks = chunker(track_id_ls, 100)
 
-def main_func(playlist_creator, playlist_uri, filename):
-    ids = track_id(playlist_creator, playlist_uri)
+    # Get track details
+    track_features_ls = []
+
+    for t_id in track_chunks:
+        track_features  = sp.audio_features(t_id)
+        track_features_ls.append(track_features)
+
+    track_features_df = pd.DataFrame(track_features_ls[0])
+    track_features_df = track_features_df.rename(columns={'id':'track_id'})
+
+    df_main = df.merge(track_features_df, on='track_id', how='left')
     
-    # get track by track ids
-    tracks = [] 
-    for i in range(len(ids)):
-        track = getTrackFeatures(ids[i])
-        tracks.append(track)
-        dff = pd.DataFrame(tracks, columns = [
-            'track_id', 'name', 'album', 'artist', 'release_date', 'length', 'popularity', 
-            'acousticness', 'danceability', 'valence',  'energy', 'instrumentalness', 'liveness', 'loudness', 
-            'speechiness', 'tempo', 'time_signature'])
-    return dff
+    return df_main
 
 # SVG Logo
 logo_svg = """
-        <svg width="400px" height="150px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        <svg width="250px" height="75px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	  style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
 <g>
 	<path d="M736.79,198.01c-5.63-12.99-11.14-26.04-17.02-38.93c-2.11-4.63-2.64-7.55,1.97-11.66c4.05-3.6,7.17-9.5,8.25-14.88
@@ -172,7 +159,30 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 
 # ---- HEADER SECTION ----
 with st.container():
-    render_svg(logo_svg)
+    left_col, right_col = st.columns([1,2])
+    with left_col:
+        render_svg(logo_svg)
+    with right_col:
+        search_page = option_menu(
+            menu_title=None,
+            options=["Search", "User Data", "Playlist"],
+            icons=["search", "person-circle", "vinyl"],
+            menu_icon="cast",
+            default_index=2,
+            orientation="horizontal",
+            styles={
+        "container": {"padding": "0!important", "text-align": "center"},
+        "icon": {"color": "orange", "font-size": "18px"}, 
+        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        # "nav-link-selected": {"background-color": "green"},
+    }
+    )
+        if search_page == "Search":
+            switch_page("homepage")
+        if search_page == 'User Data':
+            switch_page("User Data")
+        # if search_page == 'Playlist':
+        #     switch_page("Playlist")
 
 with st.container():
     st.title("Playlist Comparison")
@@ -194,11 +204,11 @@ with st.container():
         # st.write(f"Playlist1 ID: {playlist1_id}")
         # st.write(f"Playlist2 ID: {playlist2_id}")
 
-        df1 = main_func('Spotify', playlist1_id, 'playlist_1')
+        df1 = GetPlaylistTrackDetails(playlist1_id)
         df1['playlist_origin'] = 'playlist1'
 
 
-        df2 = main_func('Spotify', playlist2_id, 'playlist_2')
+        df2 = GetPlaylistTrackDetails(playlist2_id)
         df2['playlist_origin'] = 'playlist2'
     
         # Concatinating two playlists
@@ -209,7 +219,9 @@ with st.container():
         # st.dataframe(df)
 
         # MAKE MODEL
-        df_model = df.drop(['track_id', 'name', 'album', 'artist', 'release_date', 'playlist_origin'], axis=1)
+        df_model = df.drop(['track_id', 'track_name', 'album', 'artist', 
+                            'release_date','type', 'uri', 'track_href', 'analysis_url', 
+                            'duration_ms', 'time_signature', 'playlist_origin'], axis=1)
         # st.dataframe(dataset)
 
         # Create cluster
@@ -234,9 +246,26 @@ with st.container():
         valence_filter = mean_df[mean_df['cluster'] == 1]['valence'].iloc[0]
         energy_filter = mean_df[mean_df['cluster'] == 1]['energy'].iloc[0]
 
-        new_df = df[(df['popularity']>= pop_filter) & (df['danceability']>=dance_filter) & (df['valence'].between(valence_filter-.30, valence_filter+.30)) & (df['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True)
+        # Apply filters to each data frame and only return max 50 tracks from each playlist
+        df1_update = df1[(df1['popularity']>= pop_filter) & (df1['danceability']>=dance_filter) & (df1['valence'].between(valence_filter-.30, valence_filter+.30)) & (df1['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True).sample(25, replace=True)
+        df2_update = df2[(df2['popularity']>= pop_filter) & (df2['danceability']>=dance_filter) & (df2['valence'].between(valence_filter-.30, valence_filter+.30)) & (df2['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True).sample(25, replace=True)
+
+        # Concatinating two playlists
+        new_df = pd.concat([df1_update,df2_update], axis=0).sample(50)
+        
         st.session_state.new_df = new_df
-        st.dataframe(new_df)
+        st.dataframe(new_df, hide_index=True)
+
+        # List of audio features for the box plot
+        audio_features = ['danceability', 'energy', 'valence']
+
+        # Create the Track Analysis Distribution using a Box Plot
+        fig1 = px.box(new_df, y=audio_features, title='Track Analysis Distribution',
+                    labels={'variable': 'Audio Features', 'value': 'Value'},
+                    boxmode='group'  # 'group' for side-by-side boxes, 'overlay' for overlapping boxes
+                    )
+        st.plotly_chart(fig1)
+
 
     # Initialize st.session_state.new_df if not already initialized
     if 'new_df' not in st.session_state:

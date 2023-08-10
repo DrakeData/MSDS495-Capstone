@@ -1,37 +1,35 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import requests
 import spotipy
-import os
-import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import base64
-from PIL import Image
 from spotipy.oauth2 import SpotifyOAuth
 from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
-import urllib.parse
 import re
 from datetime import datetime
+from streamlit_option_menu import option_menu
+from streamlit_extras.switch_page_button import switch_page
 
 # ---- MAIN TAB SECTION ----
 # emoji cheatsheet: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(
     page_title="MSDS 498: Capstone Project", 
     page_icon=":musical_note:", 
-    layout="wide"
+    layout="centered",
+    initial_sidebar_state="collapsed"
     )
 
-# ---- REMOVE SIDEBAR EXTRA SPACING UPTOP ----
-st.markdown("""
-  <style>
-    div.css-1pd56a0.e1tzin5v0 {
-      margin-top: -75px;
+# ---- Hide Sidebar ----
+st.markdown(
+    """
+<style>
+    [data-testid="collapsedControl"] {
+        display: none
     }
-  </style>
-""", unsafe_allow_html=True)
-
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 # ---- REMOVE MAIN PAGE EXTRA SPACING UPTOP ----
 st.markdown("""
@@ -56,7 +54,7 @@ def render_svg(svg):
 
 # SVG Logo
 logo_svg = """
-        <svg width="400px" height="150px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        <svg width="250px" height="75px" fill="#ffffff" viewBox="0 0 757.15 289" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	  style="enable-background:new 0 0 757.15 289;" xml:space="preserve">
 <g>
 	<path d="M736.79,198.01c-5.63-12.99-11.14-26.04-17.02-38.93c-2.11-4.63-2.64-7.55,1.97-11.66c4.05-3.6,7.17-9.5,8.25-14.88
@@ -195,11 +193,36 @@ def simplify_genre(genre):
 
 @st.cache_data
 def convert_df(df):
-   return df.to_csv(index=False).encode('utf-8') 
+   return df.to_csv(index=False).encode('utf-8')
+
+with st.container():
+    left_col, right_col = st.columns([1,2])
+    with left_col:
+        render_svg(logo_svg)
+    with right_col:
+        search_page = option_menu(
+            menu_title=None,
+            options=["Search", "User Data", "Playlist"],
+            icons=["search", "person-circle", "vinyl"],
+            menu_icon="cast",
+            default_index=1,
+            orientation="horizontal",
+            styles={
+        "container": {"padding": "0!important", "text-align": "center"},
+        "icon": {"color": "orange", "font-size": "18px"}, 
+        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        # "nav-link-selected": {"background-color": "green"},
+    }
+    )
+        if search_page == "Search":
+            switch_page("homepage")
+        # if search_page == 'User Data':
+        #     switch_page("User Data")
+        if search_page == 'Playlist':
+            switch_page("Playlist")
 
 # ---- HEADER SECTION ----
 with st.container():
-    render_svg(logo_svg)
     st.title("Your Spotify Listening Data")
     # Display the login button
     if st.button("Login to Spotify"):
@@ -242,14 +265,20 @@ with st.container():
                     'artist_name':artist_name_ls,
                     'popularity':pop_ls})
             
+            # function to divide a list of uris (or ids) into chuncks of 50.
+            chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
+
+            # using the function
+            track_chunks = chunker(track_id_ls, 100)
+
             # Get track details
             track_features_ls = []
 
-            for t_id in track_id_ls:
+            for t_id in track_chunks:
                 track_features  = sp.audio_features(t_id)
-                track_features_ls.append(track_features[0])
+                track_features_ls.append(track_features)
 
-            track_features_df = pd.DataFrame(track_features_ls)
+            track_features_df = pd.DataFrame(track_features_ls[0])
 
             df_main = df.merge(track_features_df, on='id', how='left')
 
