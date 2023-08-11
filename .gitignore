@@ -10,3 +10,4 @@ sample_data/
 .ipynb_checkpoints
 __pycache__/config.cpython-310.pyc
 app/.streamlit/secrets.toml
+__pycache__
