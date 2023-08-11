@@ -116,7 +116,6 @@ CLIENT_ID = st.secrets["SPOTIFY_CLIENT_KEY"]
 CLIENT_SECRET = st.secrets["SPOTIFY_SECRET_KEY"]
 REDIRECT_URI = 'http://localhost:7777/callback'
 
-
 # Define the scope for the required permissions
 SCOPE = 'user-library-read user-top-read'  # Add any other scopes your app requires
 
@@ -124,11 +123,11 @@ SCOPE = 'user-library-read user-top-read'  # Add any other scopes your app requi
 sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,
                         client_secret=CLIENT_SECRET,
                         redirect_uri=REDIRECT_URI,
-                        scope=SCOPE)
+                        scope=SCOPE,
+                        show_dialog=True)
 
-
- # Functions
- # Define a regex pattern to identify genres
+# Functions
+# Define a regex pattern to identify genres
 pop_pattern = re.compile(r'pop', re.IGNORECASE)
 rock_pattern = re.compile(r'rock', re.IGNORECASE)
 hip_hop_pattern = re.compile(r'hip-?hop|rap', re.IGNORECASE)
