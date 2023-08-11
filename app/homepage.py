@@ -334,7 +334,7 @@ with st.container():
                     margin=dict(l=0, r=0, t=50, b=0)  # Adjust margins as needed
                 )
 
-		fig.update_polars(bgcolor = "rgba(34, 48, 66, .2)")
+		fig.update_polars(bgcolor = "rgba(248,239,229, 0.8)")
 
                 # Display the Plotly radar chart in Streamlit
                 st.plotly_chart(fig)
