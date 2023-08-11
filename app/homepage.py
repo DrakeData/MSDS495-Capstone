@@ -297,50 +297,50 @@ with st.container():
                     lyric_nlp.show_lyrics(track_name_clean, artist_name)
 
                 # Create word cloud
-                raw = lyric_nlp.get_lyrics_by_song(track_name_clean, artist_name)
-                raw2 = raw.replace('\n', ' ')
-                raw2 = raw2.split(' ')
-                raw3 = raw.split('Lyrics\n', 1)[1]
-                raw3 = raw3.split('Embed')[0]
-                raw3 = raw3.replace('\n', ' ')
+                # raw = lyric_nlp.get_lyrics_by_song(track_name_clean, artist_name)
+                # raw2 = raw.replace('\n', ' ')
+                # raw2 = raw2.split(' ')
+                # raw3 = raw.split('Lyrics\n', 1)[1]
+                # raw3 = raw3.split('Embed')[0]
+                # raw3 = raw3.replace('\n', ' ')
                 
-                lyric_corpus_tokenized = []
-                tokenizer = RegexpTokenizer(r'\w+')
-                for lyric in raw2:
-                    tokenized_lyric = tokenizer.tokenize(lyric.lower())  # tokenize and lower each lyric
-                    lyric_corpus_tokenized.append(lyric)
+                # lyric_corpus_tokenized = []
+                # tokenizer = RegexpTokenizer(r'\w+')
+                # for lyric in raw2:
+                #     tokenized_lyric = tokenizer.tokenize(lyric.lower())  # tokenize and lower each lyric
+                #     lyric_corpus_tokenized.append(lyric)
 
-                processed_text = []
-                for i in lyric_corpus_tokenized:
-                    text = lyric_nlp.normalize(i)
-                    processed_text.append(text)
+                # processed_text = []
+                # for i in lyric_corpus_tokenized:
+                #     text = lyric_nlp.normalize(i)
+                #     processed_text.append(text)
 
-                final_corpus = []
-                for s, song in enumerate(processed_text):
-                    if len(song) > 2 and not song.isnumeric() and song != '':
-                        final_corpus.append(song)
+                # final_corpus = []
+                # for s, song in enumerate(processed_text):
+                #     if len(song) > 2 and not song.isnumeric() and song != '':
+                #         final_corpus.append(song)
 
-                # set up wordcloud colors & parameters
-                col_diverging = ['#408487','#4F9DA6','#71C5C9','#96EAEA','#AEFFFF','#FFDC83', '#F7D47C','#F9CF5A','#E2B74B','#C69C3E','#E3FFFE','#FFEABB']
+                # # set up wordcloud colors & parameters
+                # col_diverging = ['#408487','#4F9DA6','#71C5C9','#96EAEA','#AEFFFF','#FFDC83', '#F7D47C','#F9CF5A','#E2B74B','#C69C3E','#E3FFFE','#FFEABB']
 
-                def color(word=None, font_size=None, position=None,  orientation=None, font_path=None, random_state=44, **kwargs):
-                    return ImageColor.getcolor(col_diverging[random.randint(0,len(col_diverging)-1)], 'RGB')
+                # def color(word=None, font_size=None, position=None,  orientation=None, font_path=None, random_state=44, **kwargs):
+                #     return ImageColor.getcolor(col_diverging[random.randint(0,len(col_diverging)-1)], 'RGB')
                 
-                stopwords = set(STOPWORDS)
+                # stopwords = set(STOPWORDS)
                     
-                # create word cloud image
-                wordcloud = WordCloud(width = 1000, height = 500, max_words = 100, background_color = '#223042',
-                color_func =  color, stopwords = stopwords, normalize_plurals = True, collocations = False).generate(raw3)
-                plt.figure()
-                plt.imshow(wordcloud, interpolation="bilinear")
-                plt.axis("off")
-                st.pyplot(plt)
-                # token by frequency table in word cloud image
-                word_count = WordCloud().process_text(raw)
-                word_count_df = pd.DataFrame.from_dict(word_count, orient='index').reset_index()
-                word_count_df = word_count_df.rename(columns={"index": "Token", 0: "Frequency"})
-                word_count_df = word_count_df.sort_values(by=['Frequency'], ascending=False).reset_index(drop=True)
-                st.dataframe(word_count_df)
+                # # create word cloud image
+                # wordcloud = WordCloud(width = 1000, height = 500, max_words = 100, background_color = '#223042',
+                # color_func =  color, stopwords = stopwords, normalize_plurals = True, collocations = False).generate(raw3)
+                # plt.figure()
+                # plt.imshow(wordcloud, interpolation="bilinear")
+                # plt.axis("off")
+                # st.pyplot(plt)
+                # # token by frequency table in word cloud image
+                # word_count = WordCloud().process_text(raw)
+                # word_count_df = pd.DataFrame.from_dict(word_count, orient='index').reset_index()
+                # word_count_df = word_count_df.rename(columns={"index": "Token", 0: "Frequency"})
+                # word_count_df = word_count_df.sort_values(by=['Frequency'], ascending=False).reset_index(drop=True)
+                # st.dataframe(word_count_df)
 
             elif selected_track_choice == 'Similar Songs Recommendation':
                 # Get Spotify token
