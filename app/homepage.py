@@ -242,11 +242,6 @@ elif search_selected == 'Album':
 
 #### TRACK DATA ####
 with st.container():
-    # clear album images from directory
-    dir = 'images/album_img'
-    for f in os.listdir(dir):
-        os.remove(os.path.join(dir, f))
-
     # Visualize track data
     if selected_track is not None and len(tracks) > 0:
         tracks_list = tracks['tracks']['items']
@@ -259,16 +254,11 @@ with st.container():
                     artist_name = track['artists'][0]['name']
                     track_id = track['id']
                     track_album = track['album']['name']
-                    album_img_url = track['album']['images'][1]['url']
-
-                    # Save album image
-                    r = requests.get(album_img_url)
-                    open(f"images/album_img/{track_id}.jpg", "wb").write(r.content)
+                    album_img_url = track['album']['images'][0]['url']
 
         selected_track_choice = None            
         if track_id is not None:
-            image = Image.open(f"images/album_img/{track_id}.jpg")
-            st.image(image)
+            st.image(album_img_url)
             track_choices = ['Song Features', 'Similar Songs Recommendation']
             selected_track_choice = st.selectbox('Please select track option: ', track_choices)        
             if selected_track_choice == 'Song Features':
@@ -580,7 +570,7 @@ with st.container():
                                         st.write(df_top_tracks_main['track_name'][idx])
                                         st.write("Artist does not provide sample tracks")
 # Ad
-st.image("images/ad_img/listr_premium_ad_2.png")
+st.image("listr_premium_ad2.png")
 
 left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:

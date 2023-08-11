@@ -365,7 +365,7 @@ with st.container():
             st.warning("Make sure you set the correct CLIENT_ID and CLIENT_SECRET.")
 
 # Ad
-st.image("images/ad_img/listr_premium_ad_2.png")
+st.image("listr_premium_ad2.png")
 
 left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:
