@@ -226,142 +226,147 @@ with st.container():
 # ---- HEADER SECTION ----
 with st.container():
     st.title("Your Spotify Listening Data")
+    st.markdown('''This feature is on its way and will be available shortly! 
+                In the meantime, feel free to explore the dashboard using the sample data 
+                provided by our team. Stay tuned for updates!''')
     # Display the login button
     if st.button("Login to Spotify"):
         # Get the access token using SpotifyOAuth
-        access_token = sp_oauth.get_access_token(as_dict=False)
-        # Use the access token to authenticate Spotipy
-        sp = spotipy.Spotify(auth_manager=sp_oauth)
-        user = sp.current_user()
-        st.write(f"Hi {user['display_name']}! We are now gathering your Spotify listening data.")
+        # access_token = sp_oauth.get_access_token(as_dict=False)
+        # # Use the access token to authenticate Spotipy
+        # sp = spotipy.Spotify(auth_manager=sp_oauth)
+        # user = sp.current_user()
+        # st.write(f"Hi {user['display_name']}! We are now gathering your Spotify listening data.")
 
-        # Check if the token was successfully obtained
-        if access_token:
-            st.write("Pulling your user data...")          
-            # Get user tracks
-            top_tracks = sp.current_user_top_tracks(time_range='medium_term', limit=50)
+        # # Check if the token was successfully obtained
+        # if access_token:
+        #     st.write("Pulling your user data...")          
+        #     # Get user tracks
+        #     top_tracks = sp.current_user_top_tracks(time_range='medium_term', limit=50)
 
-            track_id_ls = []
-            track_name_ls = []
-            track_release_ls = []
-            artist_name_ls = []
-            pop_ls = []
+        #     track_id_ls = []
+        #     track_name_ls = []
+        #     track_release_ls = []
+        #     artist_name_ls = []
+        #     pop_ls = []
 
-            # Will use to get genre in artist call
-            artist_url = []
-            album_url = []
+        #     # Will use to get genre in artist call
+        #     artist_url = []
+        #     album_url = []
 
 
-            for track in top_tracks['items']:
-                track_id_ls.append(track['id'])
-                track_name_ls.append(track['name'])
-                track_release_ls.append(track['album']['release_date'])
-                artist_name_ls.append(track['artists'][0]['name'])
-                pop_ls.append(track['popularity'])
-                artist_url.append(track['artists'][0]['external_urls']['spotify'])
-                album_url.append(track['album']['external_urls']['spotify'])
+        #     for track in top_tracks['items']:
+        #         track_id_ls.append(track['id'])
+        #         track_name_ls.append(track['name'])
+        #         track_release_ls.append(track['album']['release_date'])
+        #         artist_name_ls.append(track['artists'][0]['name'])
+        #         pop_ls.append(track['popularity'])
+        #         artist_url.append(track['artists'][0]['external_urls']['spotify'])
+        #         album_url.append(track['album']['external_urls']['spotify'])
 
-            df = pd.DataFrame({'id':track_id_ls,
-                    'track_name':track_name_ls,
-                    'track_release':track_release_ls,
-                    'artist_name':artist_name_ls,
-                    'popularity':pop_ls})
+        #     df = pd.DataFrame({'id':track_id_ls,
+        #             'track_name':track_name_ls,
+        #             'track_release':track_release_ls,
+        #             'artist_name':artist_name_ls,
+        #             'popularity':pop_ls})
             
-            # function to divide a list of uris (or ids) into chuncks of 50.
-            chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
+        #     # function to divide a list of uris (or ids) into chuncks of 50.
+        #     chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
 
-            # using the function
-            track_chunks = chunker(track_id_ls, 100)
+        #     # using the function
+        #     track_chunks = chunker(track_id_ls, 100)
 
-            # Get track details
-            track_features_ls = []
+        #     # Get track details
+        #     track_features_ls = []
 
-            for t_id in track_chunks:
-                track_features  = sp.audio_features(t_id)
-                track_features_ls.append(track_features)
+        #     for t_id in track_chunks:
+        #         track_features  = sp.audio_features(t_id)
+        #         track_features_ls.append(track_features)
 
-            track_features_df = pd.DataFrame(track_features_ls[0])
+        #     track_features_df = pd.DataFrame(track_features_ls[0])
 
-            df_main = df.merge(track_features_df, on='id', how='left')
+        #     df_main = df.merge(track_features_df, on='id', how='left')
 
-            # Add a new column for track ranking
-            df_main['track_rank'] = range(1, len(df_main) + 1)
+        #     # Add a new column for track ranking
+        #     df_main['track_rank'] = range(1, len(df_main) + 1)
 
-            # Get genre
-            artist_genre_ls = []
-            for art_url in artist_url:
-                artist = sp.artist(art_url)
-                artist_genre_ls.append(artist['genres'])
+        #     # Get genre
+        #     artist_genre_ls = []
+        #     for art_url in artist_url:
+        #         artist = sp.artist(art_url)
+        #         artist_genre_ls.append(artist['genres'])
 
-            artist_genre_ls2 = []
+        #     artist_genre_ls2 = []
 
-            # Get the first genre of each list
-            simplify_genre_ls = []
+        #     # Get the first genre of each list
+        #     simplify_genre_ls = []
 
-            for genre in artist_genre_ls:
-                try:
-                    simplify_genre_ls.append(genre[0])
-                except IndexError:
-                    simplify_genre_ls.append('No Genre Data')
+        #     for genre in artist_genre_ls:
+        #         try:
+        #             simplify_genre_ls.append(genre[0])
+        #         except IndexError:
+        #             simplify_genre_ls.append('No Genre Data')
 
 
-            # Test the regex patterns on sample genres
-            for genre in simplify_genre_ls:
-                artist_genre_ls2.append(simplify_genre(genre))
+        #     # Test the regex patterns on sample genres
+        #     for genre in simplify_genre_ls:
+        #         artist_genre_ls2.append(simplify_genre(genre))
             
-            df_main['genre'] = artist_genre_ls2
+        #     df_main['genre'] = artist_genre_ls2
 
-            # Convert mill second to hours, minutes, seconds
-            millis=df_main['duration_ms']
-            df_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
+        #     # Convert mill second to hours, minutes, seconds
+        #     millis=df_main['duration_ms']
+        #     df_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
 
-            # show raw table
-            st.dataframe(df_main)
+        # read in sample data
+        df_main = pd.read_csv('2023_nd_sample.csv')
+        # show raw table
+        st.dataframe(df_main)
 
-            # Visualizations
-            # Favorite Simplified Genres - Bar Chart
-            favorite_genres = df_main['track_name'].groupby(df_main['genre']).count().reset_index()
-            favorite_genres = favorite_genres.rename(columns={'genre':'Genre',
-                                                            'track_name': 'Count'})
-            favorite_genres = favorite_genres.sort_values('Count', ascending=False)
+        # Visualizations
+        # Favorite Simplified Genres - Bar Chart
+        favorite_genres = df_main['track_name'].groupby(df_main['genre']).count().reset_index()
+        favorite_genres = favorite_genres.rename(columns={'genre':'Genre',
+                                                        'track_name': 'Count'})
+        favorite_genres = favorite_genres.sort_values('Count', ascending=False)
 
-            fig1 = px.bar(favorite_genres, x='Genre', y='Count', title='Top Favorite Simplified Genres')
-            st.plotly_chart(fig1)
-            
-            # Danceability vs. Energy - Scatter Plot
-            dance_eng = df_main[['track_name', 'artist_name','danceability', 'energy']]
-            dance_eng = dance_eng.rename(columns={'danceability':'Danceability',
-                                                'energy': 'Energy'})
+        fig1 = px.bar(favorite_genres, x='Genre', y='Count', title='Top Favorite Simplified Genres')
+        st.plotly_chart(fig1)
+        
+        # Danceability vs. Energy - Scatter Plot
+        dance_eng = df_main[['track_name', 'artist_name','danceability', 'energy']]
+        dance_eng = dance_eng.rename(columns={'danceability':'Danceability',
+                                            'energy': 'Energy'})
 
-            fig2 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name', 'artist_name'],
-                    title='Danceability vs. Energy of Listened Tracks')
-            st.plotly_chart(fig2)
+        fig2 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name', 'artist_name'],
+                title='Danceability vs. Energy of Listened Tracks')
+        st.plotly_chart(fig2)
 
-            # List of audio features for the box plot
-            audio_features = ['danceability', 'energy', 'valence']
+        # List of audio features for the box plot
+        audio_features = ['danceability', 'energy', 'valence']
 
-            # Create the Track Analysis Distribution using a Box Plot
-            fig3 = px.box(df_main, y=audio_features, title='Track Analysis Distribution',
-                        labels={'variable': 'Audio Features', 'value': 'Value'},
-                        boxmode='group'  # 'group' for side-by-side boxes, 'overlay' for overlapping boxes
-                        )
-            st.plotly_chart(fig3)
+        # Create the Track Analysis Distribution using a Box Plot
+        fig3 = px.box(df_main, y=audio_features, title='Track Analysis Distribution',
+                    labels={'variable': 'Audio Features', 'value': 'Value'},
+                    boxmode='group'  # 'group' for side-by-side boxes, 'overlay' for overlapping boxes
+                    )
+        st.plotly_chart(fig3)
 
-            # Download table to csv
-            today = datetime.today().strftime('%Y%m%d')
+        # Download table to csv
+        today = datetime.today().strftime('%Y%m%d')
 
-            csv = convert_df(df_main)
-            st.download_button(
-            "Press to Download",
-            csv,
-            f"{today}_SpotifyUserData.csv",
-            "text/csv",
-            key='download-csv'
-            )        
+        csv = convert_df(df_main)
+        st.download_button(
+        "Press to Download",
+        csv,
+        f"{today}_SpotifyUserData.csv",
+        "text/csv",
+        key='download-csv'
+        )        
 
-        else:
-            st.error("Authentication failed. Please check your credentials and scope.")
-            st.warning("Make sure you set the correct CLIENT_ID and CLIENT_SECRET.")
+        # else:
+        #     st.error("Authentication failed. Please check your credentials and scope.")
+        #     st.warning("Make sure you set the correct CLIENT_ID and CLIENT_SECRET.")
 
 # Ad
 st.image("listr_premium_ad2.png")

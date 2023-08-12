@@ -4,7 +4,7 @@ import nltk
 import matplotlib.pyplot as plt
 from lyricsgenius import Genius
 import pyLDAvis.gensim_models as gensimvis
-from transformers import AutoTokenizer, T5ForConditionalGeneration
+# from transformers import AutoTokenizer, T5ForConditionalGeneration
 # from config import LG_TOKEN
 
 from gensim.corpora import Dictionary
@@ -24,34 +24,34 @@ nltk.download('punkt', quiet=True)
 nltk.download('omw-1.4', quiet=True)
 
 # Retrieving and Classifying Lyrics
-tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion", use_fast=False)
-model = T5ForConditionalGeneration.from_pretrained("mrm8488/t5-base-finetuned-emotion")
+# tokenizer = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-emotion", use_fast=False)
+# model = T5ForConditionalGeneration.from_pretrained("mrm8488/t5-base-finetuned-emotion")
 
 # token = LG_TOKEN
 token = st.secrets["LG_TOKEN"]
 genius = Genius(token, timeout = 200, verbose = False, excluded_terms=["(Remix)", "(Live)"], remove_section_headers = True)
 
-def get_emotion(text):
-    input_ids = tokenizer.encode(text + '</s>', return_tensors='pt', max_length = 512, truncation = True)
+# def get_emotion(text):
+#     input_ids = tokenizer.encode(text + '</s>', return_tensors='pt', max_length = 512, truncation = True)
 
-    output = model.generate(input_ids=input_ids,
-               max_length=2)
+#     output = model.generate(input_ids=input_ids,
+#                max_length=2)
   
-    dec = [tokenizer.decode(ids) for ids in output]
-    label = dec[0]
-    return label
+#     dec = [tokenizer.decode(ids) for ids in output]
+#     label = dec[0]
+#     return label
 
-def song_emotion(track_name, artist):
-    songs = genius.search_songs(track_name + ' ' + artist) #Finding all searches
-    try:
-        lyrics = genius.lyrics(song_url = songs['hits'][0]['result']['url']) #Returning the first song's lyrics
-        lyrics = lyrics.split('Lyrics\n', 1)[1] #Removing the title
-        lyrics = lyrics.split('Embed')[0] #Removing the end
-        lyrics = lyrics.replace('\n', ' ') #Removing line breaks from string
-        track_emotion = get_emotion(lyrics).split(' ')[1]
-        st.write(f'Track Emotion: {track_emotion}')
-    except:
-        st.write('Track Emotion: Not Detected')
+# def song_emotion(track_name, artist):
+#     songs = genius.search_songs(track_name + ' ' + artist) #Finding all searches
+#     try:
+#         lyrics = genius.lyrics(song_url = songs['hits'][0]['result']['url']) #Returning the first song's lyrics
+#         lyrics = lyrics.split('Lyrics\n', 1)[1] #Removing the title
+#         lyrics = lyrics.split('Embed')[0] #Removing the end
+#         lyrics = lyrics.replace('\n', ' ') #Removing line breaks from string
+#         track_emotion = get_emotion(lyrics).split(' ')[1]
+#         st.write(f'Track Emotion: {track_emotion}')
+#     except:
+#         st.write('Track Emotion: Not Detected')
 
 def get_lyrics_by_song(song, arr):
     try:

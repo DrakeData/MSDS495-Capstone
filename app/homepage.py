@@ -2,10 +2,9 @@ import streamlit as st
 import pandas as pd
 import requests
 import spotipy
-import os
 import matplotlib.pyplot as plt
 import base64
-from PIL import Image, ImageColor
+from PIL import ImageColor
 import random
 import re
 import plotly.express as px
@@ -290,7 +289,7 @@ with st.container():
                 track_name_clean = re.sub(' [\(\[].*?[\)\]]', '', track_name)
                 
                 # Get song emotion
-                lyric_nlp.song_emotion(track_name_clean, artist_name)
+                # lyric_nlp.song_emotion(track_name_clean, artist_name)
 
                 # Get song lyrics
                 if track_name_clean and artist_name:
