@@ -316,7 +316,7 @@ with st.container():
             # sp2.playlist_add_items(playlist["id"], track_ids_ls)
             st.success(f"Playlist '{playlist_name}_listr' created with {len(track_ids_ls)} tracks!")
 # Ad
-st.image("listr_premium_ad2.png")
+st.image("https://github.com/DrakeData/MSDS498-Capstone/blob/main/app/listr_premium_ad2.png")
 
 left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:

@@ -569,7 +569,7 @@ with st.container():
                                         st.write(df_top_tracks_main['track_name'][idx])
                                         st.write("Artist does not provide sample tracks")
 # Ad
-st.image("listr_premium_ad2.png")
+st.image("https://github.com/DrakeData/MSDS498-Capstone/blob/main/app/listr_premium_ad2.png")
 
 left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:
