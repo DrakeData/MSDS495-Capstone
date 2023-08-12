@@ -369,7 +369,7 @@ with st.container():
         #     st.warning("Make sure you set the correct CLIENT_ID and CLIENT_SECRET.")
 
 # Ad
-st.image("listr_premium_ad2.png")
+st.image("https://raw.githubusercontent.com/DrakeData/MSDS498-Capstone/2367a792f89c807e2e2cb5f57c57e3f19c12dc7a/app/listr_premium_ad2.png")
 
 left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:

@@ -168,7 +168,7 @@ with st.container():
             orientation="horizontal",
             styles={
         "container": {"padding": "0!important"},
-        "icon": {"color": "orange", "font-size": "18px"}, 
+        "icon": {"color": "orange", "font-size": "15px"}, 
         "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
@@ -569,7 +569,7 @@ with st.container():
                                         st.write(df_top_tracks_main['track_name'][idx])
                                         st.write("Artist does not provide sample tracks")
 # Ad
-st.image("listr_premium_ad2.png")
+st.image("https://raw.githubusercontent.com/DrakeData/MSDS498-Capstone/2367a792f89c807e2e2cb5f57c57e3f19c12dc7a/app/listr_premium_ad2.png")
 
 left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:
