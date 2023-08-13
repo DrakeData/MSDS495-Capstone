@@ -13,7 +13,6 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from nltk.tokenize import RegexpTokenizer
 from streamlit_option_menu import option_menu
 from streamlit_extras.switch_page_button import switch_page
-# from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY, LG_TOKEN
 import lyric_nlp
 
 
@@ -146,8 +145,8 @@ with st.container():
         # "nav-link-selected": {"background-color": "green"},
     }
     )
-        # if search_page == "Search":
-        #     switch_page("homepage")
+
+        # page navagation
         if search_page == 'User Data':
             switch_page("User Data")
         if search_page == 'Playlist':
@@ -219,14 +218,22 @@ if search_keyword is not None and len(str(search_keyword)) > 0:
     # Album search
     elif search_selected == 'Album':
         st.write("Searching album...")
+        # query = f'{search_keyword}'
         albums = sp.search(q=f"album:{search_keyword}", type='album', limit=20)
         albums_list = albums['albums']['items']
         if len(albums_list) > 0:
-            for album in albums_list:
-                # st.write(f"{album['name']} By {album['artists'][0]['name']}")
-                search_results.append(f"{album['name']} By {album['artists'][0]['name']}")
+            unique_albums = []
 
-# Create clean search result list
+            for album in albums_list:
+                album_name = album['name']
+                artist_name = album['artists'][0]['name']
+                result = f"{album_name} By {artist_name}"
+                
+                if result not in unique_albums:
+                    unique_albums.append(result)
+                    search_results.append(result)
+
+# Remove duplicate entries while preserving alignment
 search_results_clean = list(dict.fromkeys(search_results))
 
 selected_album = None
@@ -406,11 +413,10 @@ with st.container():
             st.write(f"Collecting all the tracks for the album: {album_name}")
             album_tracks = sp.album_tracks(album_id)
             df_album_tracks = pd.DataFrame(album_tracks['items'])
-            # st.dataframe(df_album_tracks)
+            
             df_tracks_min = df_album_tracks.loc[:,
                             ['id', 'name', 'explicit', 'preview_url']]
             df_tracks_min = df_tracks_min.rename(columns={'id':'track_id', 'name':'track_name'})
-            # st.dataframe(df_tracks_min)
 
             # Get list of track IDs
             df_df_track_id = df_tracks_min['track_id'].unique().tolist()
@@ -425,7 +431,10 @@ with st.container():
                 track_features  = sp.audio_features(t_id)
                 track_features_ls.append(track_features)
 
-            album_track_features_df = pd.DataFrame(track_features_ls[0])
+            # Screen for null track features
+            data = [x for x in track_features_ls[0] if x is not None]
+            
+            album_track_features_df = pd.DataFrame(data)
             album_track_features_df = album_track_features_df.rename(columns={'id':'track_id'})
 
             album_tracks_main = df_tracks_min.merge(album_track_features_df, on='track_id', how='left')
@@ -474,18 +483,18 @@ with st.container():
         st.write("Complete!")
         if len(artists_list) > 0:
             for artist in artists_list:
-                # st.write(artist['name'])
                 search_results.append(artist['name'])
         if selected_artist is not None and len(artists) > 0:
             artists_list = artists['artists']['items']
-            artist_id = None
-            artist_uri = None
+            
+            artist_id = []
+            artist_uri = []
             selected_artist_choice = None
             if len(artists_list) > 0:
                 for artist in artists_list:
                     if selected_artist == artist['name']:
-                        artist_id = artist['id']
-                        artist_uri = artist['uri']
+                        artist_id.append(artist['id'])
+                        artist_uri.append(artist['uri'])
             
             if artist_id is not None:
                 artist_choice = ['Albums', 'Top Tracks']
@@ -493,26 +502,27 @@ with st.container():
                         
             if selected_artist_choice is not None:
                 if selected_artist_choice == 'Albums':
-                    # st.write(artist_id)
-                    artist_uri = 'spotify:artist:' + artist_id
-                    album_result = sp.artist_albums(artist_uri, album_type='album') 
+                    artist_uri = 'spotify:artist:' + artist_id[0]
+                    album_result = sp.artist_albums(artist_uri, album_type='album,single') 
                     all_albums = album_result['items']
 
+                    album_type = []
                     album_name_ls = []
                     album_release_ls = []
                     album_track_count = []
                     for album in all_albums:
+                        album_type.append(album['album_type'])
                         album_name_ls.append(album['name'])
                         album_release_ls.append(album['release_date'])
                         album_track_count.append(album['total_tracks'])
 
-                    zipped_artist = list(zip(album_name_ls, album_release_ls, album_track_count))
-                    df_art_albm = pd.DataFrame(zipped_artist, columns=['album_name', 'album_release', 'track_count'])
+                    zipped_artist = list(zip(album_type, album_name_ls, album_release_ls, album_track_count))
+                    df_art_albm = pd.DataFrame(zipped_artist, columns=['album_type','album_name', 'album_release', 'track_count'])
 
                     st.dataframe(df_art_albm, hide_index=True)
 
                 elif selected_artist_choice == 'Top Tracks':
-                    artist_uri = 'spotify:artist:' + artist_id
+                    artist_uri = 'spotify:artist:' + artist_id[0]
                     top_songs_result = sp.artist_top_tracks(artist_uri)
                     
                     top_tracks_id_ls = []
@@ -528,7 +538,6 @@ with st.container():
                     df_top_tracks = pd.DataFrame(zipped_top_tracks, columns=['track_id', 'track_name', 'preview_url'])
 
                     # Get Track Featuers
-
                     # using the function
                     top_track_chunks = chunker(top_tracks_id_ls, 100)
 
@@ -543,6 +552,11 @@ with st.container():
                     track_features_df = track_features_df.rename(columns={'id':'track_id'})
 
                     df_top_tracks_main = df_top_tracks.merge(track_features_df, on='track_id', how='left')
+
+                    # Convert mill second to hours, minutes, seconds
+                    millis=df_top_tracks_main['duration_ms']
+                    df_top_tracks_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
+
                     st.dataframe(df_top_tracks_main)
 
                     # Danceability vs. Energy - Scatter Plot
