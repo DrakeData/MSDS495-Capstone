@@ -201,6 +201,7 @@ if search_keyword is not None and len(str(search_keyword)) > 0:
         artist_query = f" artist:{artist_name_search}" if artist_name_search else ""
         tracks = sp.search(q=f"track:{search_keyword}{artist_query}", type='track', limit=20)
         tracks_list = tracks['tracks']['items']
+        st.write("Complete!")
         if len(tracks_list) > 0:
             for track in tracks_list:
                 search_results.append(f"{track['name']} By {track['artists'][0]['name']}")
@@ -258,9 +259,9 @@ with st.container():
         selected_track_choice = None            
         if track_id is not None:
             st.image(album_img_url)
-            track_choices = ['Song Features', 'Similar Songs Recommendation']
+            track_choices = ['Track Features', 'Similar Tracks Recommendation']
             selected_track_choice = st.selectbox('Please select track option: ', track_choices)        
-            if selected_track_choice == 'Song Features':
+            if selected_track_choice == 'Track Features':
                 track_features  = sp.audio_features(track_id) 
                 df = pd.DataFrame(track_features, index=[0])
                 df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
@@ -276,7 +277,8 @@ with st.container():
                     showlegend = False,
                     width=600,  # Adjust width as needed
                     height=500,  # Adjust height as needed
-                    margin=dict(l=0, r=0, t=50, b=0)  # Adjust margins as needed
+                    margin=dict(l=0, r=0, t=50, b=0),  # Adjust margins as needed
+                    hovermode=False
                 )
                 
                 fig.update_polars(bgcolor = "rgba(34, 48, 66, .2)")
@@ -291,7 +293,7 @@ with st.container():
                 # Get song emotion
                 # lyric_nlp.song_emotion(track_name_clean, artist_name)
 
-                # Get song lyrics
+                # Get track lyrics
                 if track_name_clean and artist_name:
                     lyric_nlp.show_lyrics(track_name_clean, artist_name)
 
@@ -339,9 +341,9 @@ with st.container():
                 word_count_df = pd.DataFrame.from_dict(word_count, orient='index').reset_index()
                 word_count_df = word_count_df.rename(columns={"index": "Token", 0: "Frequency"})
                 word_count_df = word_count_df.sort_values(by=['Frequency'], ascending=False).reset_index(drop=True)
-                st.dataframe(word_count_df)
+                st.dataframe(word_count_df, hide_index=True)
 
-            elif selected_track_choice == 'Similar Songs Recommendation':
+            elif selected_track_choice == 'Similar Tracks Recommendation':
                 # Get Spotify token
                 url = "https://accounts.spotify.com/api/token"
                 headers = {}
@@ -377,8 +379,12 @@ with st.container():
                     rec_artist_ls.append(similar_songs_json['tracks'][i]['artists'][0]['name'])
 
                 recommendation_list_df['artist'] = rec_artist_ls
+
+                # Convert mill second to hours, minutes, seconds
+                millis=recommendation_list_df['duration_ms']
+                recommendation_list_df['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
                 
-                recommendation_df = recommendation_list_df[['name', 'artist', 'explicit', 'duration_ms', 'popularity']]
+                recommendation_df = recommendation_list_df[['name', 'artist', 'explicit', 'track_duration', 'popularity']]
                 st.dataframe(recommendation_df)
         else:
             st.write("Please select a track from the list")
@@ -462,9 +468,10 @@ with st.container():
 
         #### ARTIST DATA ####
     elif search_selected == 'Artist':
-        st.write("Start artist search")
+        st.write("Start artist search...")
         artists = sp.search(q='artist:'+ search_keyword,type='artist', limit=20)
         artists_list = artists['artists']['items']
+        st.write("Complete!")
         if len(artists_list) > 0:
             for artist in artists_list:
                 # st.write(artist['name'])
@@ -481,7 +488,7 @@ with st.container():
                         artist_uri = artist['uri']
             
             if artist_id is not None:
-                artist_choice = ['Albums', 'Top Songs']
+                artist_choice = ['Albums', 'Top Tracks']
                 selected_artist_choice = st.selectbox('Select artist choice', artist_choice)
                         
             if selected_artist_choice is not None:
@@ -504,7 +511,7 @@ with st.container():
 
                     st.dataframe(df_art_albm, hide_index=True)
 
-                elif selected_artist_choice == 'Top Songs':
+                elif selected_artist_choice == 'Top Tracks':
                     artist_uri = 'spotify:artist:' + artist_id
                     top_songs_result = sp.artist_top_tracks(artist_uri)
                     

@@ -191,11 +191,17 @@ with st.container():
 
 with st.container():
     st.title("Playlist Comparison")
-    st.write("Let's compare two Spotify playlist of your choosing. Please make sure that they are public playlist.")
-    st.write("In Spotify, go to the playlist and click the three '...' >> 'Share' >> 'Copy Link to Playlist'")
-    st.write("Copy and paste the URL link to the playlist in Listr")
-    st.write("Sample URL: https://open.spotify.com/playlist/5Qnr7ct4jZ4ad1yDRuM1to?si=0bdc634e4b6c43f6")
+    st.markdown('''
+            Let's compare two Spotify playlist of your choosing. Please make sure that they are public playlist.
+            
+            In Spotify, go to the playlist and click the three '...' >> 'Share' >> 'Copy Link to Playlist'
+            
+            Copy and paste the URL link to the playlist in Listr.
+                
+            Sample URL: https://open.spotify.com/playlist/5Qnr7ct4jZ4ad1yDRuM1to?si=0bdc634e4b6c43f6
 
+                ''')
+   
 with st.container():
     playlist1 = st.text_input(f"Enter Playlist 1 URL or Playlist ID")
     playlist2 = st.text_input(f"Enter Playlist 2 URL or Playlist ID")
@@ -250,14 +256,24 @@ with st.container():
         dance_filter = mean_df[mean_df['cluster'] == 1]['danceability'].iloc[0]
         valence_filter = mean_df[mean_df['cluster'] == 1]['valence'].iloc[0]
         energy_filter = mean_df[mean_df['cluster'] == 1]['energy'].iloc[0]
-
+        # st.write(pop_filter, dance_filter, valence_filter, energy_filter)
         # Apply filters to each data frame and only return max 50 tracks from each playlist
-        df1_update = df1[(df1['popularity']>= pop_filter) & (df1['danceability']>=dance_filter) & (df1['valence'].between(valence_filter-.30, valence_filter+.30)) & (df1['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True).sample(25, replace=True)
-        df2_update = df2[(df2['popularity']>= pop_filter) & (df2['danceability']>=dance_filter) & (df2['valence'].between(valence_filter-.30, valence_filter+.30)) & (df2['energy'].between(energy_filter-.25, energy_filter+.25))].reset_index(drop=True).sample(25, replace=True)
 
+        df1_update = df1[(df1['popularity']>= pop_filter) & (df1['danceability']>=dance_filter) & (df1['valence'].between(valence_filter-.20, valence_filter+.50)) & (df1['energy'].between(energy_filter-.20, energy_filter+.50))].reset_index(drop=True).sample(25, replace=True)
+        df2_update = df2[(df2['popularity']>= pop_filter) & (df2['danceability']>=dance_filter) & (df2['valence'].between(valence_filter-.20, valence_filter+.50)) & (df2['energy'].between(energy_filter-.20, energy_filter+.50))].reset_index(drop=True).sample(25, replace=True)
+        # st.write(f"playlist1: {len(df1_update['track_id'])}")
+        # st.write(f"playlist2: {len(df2_update['track_id'])}")
+        
         # Concatinating two playlists
         new_df = pd.concat([df1_update,df2_update], axis=0).sample(50)
         
+        # Clean dataframe
+        new_df = new_df.drop_duplicates()
+
+        # Convert mill second to hours, minutes, seconds
+        millis=new_df['duration_ms']
+        new_df['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
+
         st.session_state.new_df = new_df
         st.dataframe(new_df, hide_index=True)
 
