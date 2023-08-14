@@ -202,26 +202,27 @@ with st.container():
     with left_col:
         render_svg(logo_svg)
     with right_col:
+        # For icons: https://icons.getbootstrap.com/
         search_page = option_menu(
             menu_title=None,
-            options=["Search", "User Data", "Playlist"],
-            icons=["search", "person-circle", "vinyl"],
+            options=["Search", "User Data", "Playlist", "About"],
+            icons=["search", "person-circle", "vinyl", "question-circle"],
             menu_icon="cast",
             default_index=1,
             orientation="horizontal",
             styles={
         "container": {"padding": "0!important", "text-align": "center"},
-        "icon": {"color": "orange", "font-size": "18px"}, 
-        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        "icon": {"color": "orange", "font-size": "16px"}, 
+        "nav-link": {"font-size": "12px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
     )
         if search_page == "Search":
             switch_page("homepage")
-        # if search_page == 'User Data':
-        #     switch_page("User Data")
         if search_page == 'Playlist':
             switch_page("Playlist")
+        if search_page == "About":
+            switch_page("About")
 
 # ---- HEADER SECTION ----
 with st.container():
@@ -320,8 +321,29 @@ with st.container():
 
         # read in sample data
         df_main = pd.read_csv('2023_nd_sample.csv')
+
+        # Convert mill second to hours, minutes, seconds
+        millis=df_main['duration_ms']
+        df_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
+
+
+        # Clean up columns for final dataframe
+        df_main_clean = df_main[['id', 'track_name', 'track_duration', 'track_release', 
+                                 'artist_name', 'genre', 'popularity', 'danceability', 'energy',
+                                 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 
+                                 'instrumentalness', 'liveness', 'valence', 'tempo', 
+                                 'time_signature']]
+        
+        # # remove "_" from dataframe
+        df_main_clean = df_main_clean.rename(columns={'id': 'track id', 
+                                                    'track_name': 'track name',
+                                                    'track_duration':'track duration',
+                                                    'track_release': 'track release',
+                                                    'artist_name': 'artist name',
+                                                    'time_signature':'time signature'})
+
         # show raw table
-        st.dataframe(df_main)
+        st.dataframe(df_main_clean)
 
         # Visualizations
         # Favorite Simplified Genres - Bar Chart
@@ -355,7 +377,7 @@ with st.container():
         # Download table to csv
         today = datetime.today().strftime('%Y%m%d')
 
-        csv = convert_df(df_main)
+        csv = convert_df(df_main_clean)
         st.download_button(
         "Press to Download",
         csv,

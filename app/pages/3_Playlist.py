@@ -7,7 +7,6 @@ import plotly.express as px
 from PIL import Image
 from streamlit_option_menu import option_menu
 from streamlit_extras.switch_page_button import switch_page
-from streamlit_option_menu import option_menu
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.oauth2 import SpotifyOAuth
 # from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
@@ -168,17 +167,18 @@ with st.container():
     with left_col:
         render_svg(logo_svg)
     with right_col:
+        # For icons: https://icons.getbootstrap.com/
         search_page = option_menu(
             menu_title=None,
-            options=["Search", "User Data", "Playlist"],
-            icons=["search", "person-circle", "vinyl"],
+            options=["Search", "User Data", "Playlist", "About"],
+            icons=["search", "person-circle", "vinyl", "question-circle"],
             menu_icon="cast",
             default_index=2,
             orientation="horizontal",
             styles={
         "container": {"padding": "0!important", "text-align": "center"},
-        "icon": {"color": "orange", "font-size": "18px"}, 
-        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        "icon": {"color": "orange", "font-size": "16px"}, 
+        "nav-link": {"font-size": "12px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
     )
@@ -186,8 +186,8 @@ with st.container():
             switch_page("homepage")
         if search_page == 'User Data':
             switch_page("User Data")
-        # if search_page == 'Playlist':
-        #     switch_page("Playlist")
+        if search_page == 'About':
+            switch_page("About")
 
 with st.container():
     st.title("Playlist Comparison")
@@ -266,16 +266,28 @@ with st.container():
         
         # Concatinating two playlists
         new_df = pd.concat([df1_update,df2_update], axis=0).sample(50)
-        
-        # Clean dataframe
-        new_df = new_df.drop_duplicates()
 
         # Convert mill second to hours, minutes, seconds
         millis=new_df['duration_ms']
         new_df['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
 
+        # Clean dataframe
+        new_df = new_df.drop_duplicates(subset=['track_id'])
+
+        # Clean up columns for final dataframe
+        new_df_clean = new_df[['track_id', 'track_name', 'track_duration', 
+                                    'danceability', 'energy','key', 'loudness', 'mode', 
+                                    'speechiness', 'acousticness', 'instrumentalness', 
+                                    'liveness', 'valence', 'tempo', 'time_signature']]
+        
+        # remove "_" from dataframe
+        new_df_clean = new_df_clean.rename(columns={'track_id': 'track id', 
+                                                    'track_name': 'track name',
+                                                    'track_duration':'track duration',
+                                                    'time_signature':'time signature'})
+
         st.session_state.new_df = new_df
-        st.dataframe(new_df, hide_index=True)
+        st.dataframe(new_df_clean, hide_index=True)
 
         # List of audio features for the box plot
         audio_features = ['danceability', 'energy', 'valence']

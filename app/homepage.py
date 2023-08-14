@@ -131,17 +131,18 @@ with st.container():
     with left_col:
         render_svg(logo_svg)
     with right_col:
+        # For icons: https://icons.getbootstrap.com/
         search_page = option_menu(
             menu_title=None,
-            options=["Search", "User Data", "Playlist"],
-            icons=["search", "person-circle", "vinyl"],
+            options=["Search", "User Data", "Playlist", "About"],
+            icons=["search", "person-circle", "vinyl", "question-circle"],
             menu_icon="cast",
             default_index=0,
             orientation="horizontal",
             styles={
         "container": {"padding": "0!important", "text-align": "center"},
-        "icon": {"color": "orange", "font-size": "18px"}, 
-        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        "icon": {"color": "orange", "font-size": "16px"}, 
+        "nav-link": {"font-size": "12px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
     )
@@ -151,6 +152,8 @@ with st.container():
             switch_page("User Data")
         if search_page == 'Playlist':
             switch_page("Playlist")
+        if search_page == 'About':
+            switch_page("About")
 
 # ---- HEADER SECTION ----
 with st.container():
@@ -392,7 +395,11 @@ with st.container():
                 recommendation_list_df['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
                 
                 recommendation_df = recommendation_list_df[['name', 'artist', 'explicit', 'track_duration', 'popularity']]
-                st.dataframe(recommendation_df)
+            
+                # remove "_" from dataframe
+                recommendation_df_clean = recommendation_df.rename(columns={'track_duration':'track duration'})
+
+                st.dataframe(recommendation_df_clean)
         else:
             st.write("Please select a track from the list")
 
@@ -443,7 +450,19 @@ with st.container():
             millis=album_tracks_main['duration_ms']
             album_tracks_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
             
-            st.dataframe(album_tracks_main)
+            # Clean up columns for final dataframe
+            album_tracks_main_clean = album_tracks_main[['track_id', 'track_name', 'explicit', 'track_duration', 
+                                        'danceability', 'energy','key', 'loudness', 'mode', 
+                                        'speechiness', 'acousticness', 'instrumentalness', 
+                                        'liveness', 'valence', 'tempo', 'time_signature']]
+            
+            # remove "_" from dataframe
+            album_tracks_main_clean = album_tracks_main_clean.rename(columns={'track_id': 'track id', 
+                                                                              'track_name': 'track name',
+                                                                              'track_duration':'track duration',
+                                                                              'time_signature':'time signature'})
+
+            st.dataframe(album_tracks_main_clean)
 
 
 
@@ -453,7 +472,7 @@ with st.container():
                                                 'energy': 'Energy'})
 
             fig1 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name'],
-                    title='Danceability vs. Energy of Listened Tracks')
+                    title='Danceability vs. Energy of Album Tracks')
             st.plotly_chart(fig1)
 
             # List of audio features for the box plot
@@ -519,7 +538,13 @@ with st.container():
                     zipped_artist = list(zip(album_type, album_name_ls, album_release_ls, album_track_count))
                     df_art_albm = pd.DataFrame(zipped_artist, columns=['album_type','album_name', 'album_release', 'track_count'])
 
-                    st.dataframe(df_art_albm, hide_index=True)
+                    # remove "_" from dataframe
+                    df_art_albm_clean = df_art_albm.rename(columns={'album_type': 'album type', 
+                                                                                    'album_name': 'album name',
+                                                                                    'album_release':'album release',
+                                                                                    'track_count':'track count'})
+
+                    st.dataframe(df_art_albm_clean, hide_index=True)
 
                 elif selected_artist_choice == 'Top Tracks':
                     artist_uri = 'spotify:artist:' + artist_id[0]
@@ -557,7 +582,21 @@ with st.container():
                     millis=df_top_tracks_main['duration_ms']
                     df_top_tracks_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
 
-                    st.dataframe(df_top_tracks_main)
+                    # Clean up columns for final dataframe
+                    df_top_tracks_main_clean = df_top_tracks_main[['track_id', 'track_name', 'track_duration', 
+                                                'danceability', 'energy','key', 'loudness', 'mode', 
+                                                'speechiness', 'acousticness', 'instrumentalness', 
+                                                'liveness', 'valence', 'tempo', 'time_signature']]
+                    
+                    # remove "_" from dataframe
+                    df_top_tracks_main_clean = df_top_tracks_main_clean.rename(columns={'track_id': 'track id', 
+                                                                                    'track_name': 'track name',
+                                                                                    'track_duration':'track duration',
+                                                                                    'time_signature':'time signature'})
+
+
+
+                    st.dataframe(df_top_tracks_main_clean)
 
                     # Danceability vs. Energy - Scatter Plot
                     dance_eng = df_top_tracks_main[['track_name','danceability', 'energy']]
@@ -565,7 +604,7 @@ with st.container():
                                                         'energy': 'Energy'})
 
                     fig1 = px.scatter(dance_eng, x='Danceability', y='Energy', hover_data=['track_name'],
-                            title='Danceability vs. Energy of Listened Tracks')
+                            title='Danceability vs. Energy of Top Tracks')
                     st.plotly_chart(fig1)
 
                     # List of audio features for the box plot
