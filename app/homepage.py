@@ -8,6 +8,7 @@ from PIL import ImageColor
 import random
 import re
 import plotly.express as px
+import plotly.graph_objects as go
 from wordcloud import WordCloud, STOPWORDS
 from spotipy.oauth2 import SpotifyClientCredentials
 from nltk.tokenize import RegexpTokenizer
@@ -140,8 +141,8 @@ with st.container():
             default_index=0,
             orientation="horizontal",
             styles={
-        "container": {"padding": "0!important", "text-align": "center"},
-        "icon": {"color": "orange", "font-size": "16px"}, 
+        "container": {"padding": "0!important"},
+        "icon": {"color": "orange", "font-size": "15px"}, 
         "nav-link": {"font-size": "12px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
@@ -171,7 +172,7 @@ with st.container():
             styles={
         "container": {"padding": "0!important"},
         "icon": {"color": "orange", "font-size": "15px"}, 
-        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        "nav-link": {"font-size": "12px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
 )
@@ -268,34 +269,84 @@ with st.container():
 
         selected_track_choice = None            
         if track_id is not None:
-            st.image(album_img_url)
+            left_col, center_col, right_col = st.columns([1,14,1])
+            with left_col:
+                st.write("")
+            with center_col:
+                st.image(album_img_url)
+            with right_col:
+                st.write("")
+
             track_choices = ['Track Features', 'Similar Tracks Recommendation']
             selected_track_choice = st.selectbox('Please select track option: ', track_choices)        
             if selected_track_choice == 'Track Features':
                 track_features  = sp.audio_features(track_id) 
                 df = pd.DataFrame(track_features, index=[0])
                 df_features = df.loc[: ,['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']]
-                st.dataframe(df_features)
+                # st.dataframe(df_features)
 
                 # Create a radar chart using Plotly
                 fig = px.bar_polar(df_features, r=list(df_features.iloc[0]), theta=list(df_features.columns),
-                   color_discrete_sequence = ['#4f9da6'])
+                   color_discrete_sequence = ['#f9cf5a'])
 
-                # Customize the layout of the radar chart
                 fig.update_layout(
-                    polar = dict(radialaxis=dict(visible = False, showticklabels = False)),
-                    showlegend = False,
-                    width=600,  # Adjust width as needed
-                    height=500,  # Adjust height as needed
-                    margin=dict(l=0, r=0, t=50, b=0),  # Adjust margins as needed
-                    hovermode=False
-                )
-                
-                fig.update_polars(bgcolor = "rgba(34, 48, 66, .2)")
+                                    polar = dict(radialaxis=dict(visible = False, showticklabels = False)),
+                                    showlegend = False,
+                                    width=550,  # Adjust width as needed
+                                    height=400,  # Adjust height as needed
+                                    margin=dict(l=20, r=0, t=20, b=20)  # Adjust margins as needed
+                                )
 
-                # Display the Plotly radar chart in Streamlit
-                st.plotly_chart(fig)
-                st.write(track_name, artist_name)
+                fig.update_polars(bgcolor = "rgba(248,239,229, .2)")
+
+                left_col, center_col, right_col = st.columns([1,14,1])
+                with left_col:
+                    st.write("")
+                with center_col:
+                    st.plotly_chart(fig)
+                with right_col:
+                    st.write("")
+
+                # Creating attribute table
+                bin_labels = ['very low','low', 'med', 'high', 'very high']
+                bin_edges = [0, 0.2, 0.4, 0.6, 0.8, 1]
+
+                df_table = pd.DataFrame(df_features.iloc[0].transpose())
+
+                df_table['Rating'] = pd.DataFrame(pd.cut(df_features.iloc[0],
+                        bins = bin_edges, labels = bin_labels))
+
+                df_table.columns = [['Values','Rating']]
+
+                table = go.Figure(data=[go.Table(
+                    header = dict(
+                        values = ['<b>Attribute<b>', '<b>Value<b>', '<b>Rating<b>'],
+                        fill_color = '#fe5858',
+                        height = 35,
+                        font = dict(color = 'white', size = 14)
+                    ),
+                    cells = dict(
+                        values = [list(df_table.index),df_table.Values, df_table.Rating],
+                        fill = dict(color = '#eac7b5'),
+                        height = 25,
+                        font = dict(color = '#545454', size = 12)
+                    ),
+                    columnwidth = [10,10,10]
+                )])
+
+                table.update_layout(
+                                    width=500,  # Adjust width as needed
+                                    height=260,  # Adjust height as needed
+                                    margin=dict(l=0, r=0, t=10, b=0)  # Adjust margins as needed
+                                )
+                
+                left_col, center_col, right_col = st.columns([1,8,1])
+                with left_col:
+                    st.write("")
+                with center_col:
+                    st.write(table)
+                with right_col:
+                    st.write("")
 
                 # Clean track name to remove ()
                 track_name_clean = re.sub(' [\(\[].*?[\)\]]', '', track_name)
