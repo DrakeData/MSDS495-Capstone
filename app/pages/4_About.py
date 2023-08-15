@@ -117,7 +117,7 @@ with st.container():
             orientation="horizontal",
             styles={
         "container": {"padding": "0!important", "text-align": "center"},
-        "icon": {"color": "orange", "font-size": "16px"}, 
+        "icon": {"color": "orange", "font-size": "15px"}, 
         "nav-link": {"font-size": "12px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
         # "nav-link-selected": {"background-color": "green"},
     }
