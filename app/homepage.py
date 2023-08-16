@@ -686,6 +686,6 @@ left_col, center_col, right_col = st.columns([2, 1, 2])
 with left_col:
     st.write("")
 with center_col:
-    st.write("© 2023 LISTR")
+    st.markdown("© 2023 LISTR")
 with right_col:
     st.write("")

@@ -231,7 +231,7 @@ with st.container():
                 In the meantime, feel free to explore the dashboard using the sample data 
                 provided by our team. Stay tuned for updates!''')
     # Display the login button
-    if st.button("Login to Spotify"):
+    if st.button("View Sample Spotify Data"):
         # Get the access token using SpotifyOAuth
         # access_token = sp_oauth.get_access_token(as_dict=False)
         # # Use the access token to authenticate Spotipy
