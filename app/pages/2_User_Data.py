@@ -3,6 +3,7 @@ import pandas as pd
 import spotipy
 import plotly.express as px
 import base64
+import os
 from spotipy.oauth2 import SpotifyOAuth
 # from config import SPOTIFY_CLIENT_KEY, SPOTIFY_SECRET_KEY
 import re
@@ -107,24 +108,6 @@ logo_svg = """
 </g>
 </svg>
     """
-
-# Spotify API Authentication
-# CLIENT_ID = SPOTIFY_CLIENT_KEY
-# CLIENT_SECRET = SPOTIFY_SECRET_KEY
-
-CLIENT_ID = st.secrets["SPOTIFY_CLIENT_KEY"]
-CLIENT_SECRET = st.secrets["SPOTIFY_SECRET_KEY"]
-REDIRECT_URI = 'http://localhost:7777/callback'
-
-# Define the scope for the required permissions
-SCOPE = 'user-library-read user-top-read'  # Add any other scopes your app requires
-
-# Create the SpotifyOAuth object
-sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,
-                        client_secret=CLIENT_SECRET,
-                        redirect_uri=REDIRECT_URI,
-                        scope=SCOPE,
-                        show_dialog=True)
 
 # Functions
 # Define a regex pattern to identify genres
@@ -231,93 +214,120 @@ with st.container():
                 In the meantime, feel free to explore the dashboard using the sample data 
                 provided by our team. Stay tuned for updates!''')
     # Display the login button
-    if st.button("View Sample Spotify Data"):
-        # Get the access token using SpotifyOAuth
-        # access_token = sp_oauth.get_access_token(as_dict=False)
-        # # Use the access token to authenticate Spotipy
-        # sp = spotipy.Spotify(auth_manager=sp_oauth)
-        # user = sp.current_user()
-        # st.write(f"Hi {user['display_name']}! We are now gathering your Spotify listening data.")
+    if st.button("Login to Spotify"):
+    #     CLIENT_ID = st.secrets["SPOTIFY_CLIENT_KEY"]
+    #     CLIENT_SECRET = st.secrets["SPOTIFY_SECRET_KEY"]
+    #     REDIRECT_URI = 'http://localhost:7777/callback'
 
-        # # Check if the token was successfully obtained
-        # if access_token:
-        #     st.write("Pulling your user data...")          
-        #     # Get user tracks
-        #     top_tracks = sp.current_user_top_tracks(time_range='medium_term', limit=50)
+    #     # Define the scope for the required permissions
+    #     SCOPE = 'user-library-read user-top-read'  # Add any other scopes your app requires
 
-        #     track_id_ls = []
-        #     track_name_ls = []
-        #     track_release_ls = []
-        #     artist_name_ls = []
-        #     pop_ls = []
+    #     # Create the SpotifyOAuth object
+    #     sp_oauth = SpotifyOAuth(client_id=CLIENT_ID,
+    #                             client_secret=CLIENT_SECRET,
+    #                             redirect_uri=REDIRECT_URI,
+    #                             scope=SCOPE,
+    #                             show_dialog=True)
+        
+    #     # store oauth in session
+    #     st.session_state["sp_oauth"] = sp_oauth
 
-        #     # Will use to get genre in artist call
-        #     artist_url = []
-        #     album_url = []
+    #     # Get the authorization URL
+    #     # auth_url = sp_oauth.get_authorize_url()
+        
+    #     # # Display the authorization URL as a clickable link
+    #     # st.write("To authenticate and view your Spotify data, please click the link below:")
+    #     # st.markdown(f"[Click here to authenticate!]({auth_url})", unsafe_allow_html=True)
+
+    # # After the user has authenticated, retrieve the access token and fetch data
+    # if "sp_oauth" in st.session_state:
+    #     access_token = st.session_state.sp_oauth.get_access_token(as_dict=False, check_cache=False)
+
+    #     if access_token:
+    #         # Use the access token to authenticate Spotipy
+    #         sp = spotipy.Spotify(auth_manager=st.session_state.sp_oauth)
+    #         user = sp.current_user()
+    #         st.write(f"Hi {user['display_name']}! We are now gathering your Spotify listening data.")
+
+    #     # Check if the token was successfully obtained
+    #     if access_token:
+    #         st.write("Pulling your user data...")          
+    #         # Get user tracks
+    #         top_tracks = sp.current_user_top_tracks(time_range='medium_term', limit=50)
+
+    #         track_id_ls = []
+    #         track_name_ls = []
+    #         track_release_ls = []
+    #         artist_name_ls = []
+    #         pop_ls = []
+
+    #         # Will use to get genre in artist call
+    #         artist_url = []
+    #         album_url = []
 
 
-        #     for track in top_tracks['items']:
-        #         track_id_ls.append(track['id'])
-        #         track_name_ls.append(track['name'])
-        #         track_release_ls.append(track['album']['release_date'])
-        #         artist_name_ls.append(track['artists'][0]['name'])
-        #         pop_ls.append(track['popularity'])
-        #         artist_url.append(track['artists'][0]['external_urls']['spotify'])
-        #         album_url.append(track['album']['external_urls']['spotify'])
+    #         for track in top_tracks['items']:
+    #             track_id_ls.append(track['id'])
+    #             track_name_ls.append(track['name'])
+    #             track_release_ls.append(track['album']['release_date'])
+    #             artist_name_ls.append(track['artists'][0]['name'])
+    #             pop_ls.append(track['popularity'])
+    #             artist_url.append(track['artists'][0]['external_urls']['spotify'])
+    #             album_url.append(track['album']['external_urls']['spotify'])
 
-        #     df = pd.DataFrame({'id':track_id_ls,
-        #             'track_name':track_name_ls,
-        #             'track_release':track_release_ls,
-        #             'artist_name':artist_name_ls,
-        #             'popularity':pop_ls})
+    #         df = pd.DataFrame({'id':track_id_ls,
+    #                 'track_name':track_name_ls,
+    #                 'track_release':track_release_ls,
+    #                 'artist_name':artist_name_ls,
+    #                 'popularity':pop_ls})
             
-        #     # function to divide a list of uris (or ids) into chuncks of 50.
-        #     chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
+    #         # function to divide a list of uris (or ids) into chuncks of 50.
+    #         chunker = lambda y, x: [y[i : i + x] for i in range(0, len(y), x)]
 
-        #     # using the function
-        #     track_chunks = chunker(track_id_ls, 100)
+    #         # using the function
+    #         track_chunks = chunker(track_id_ls, 100)
 
-        #     # Get track details
-        #     track_features_ls = []
+    #         # Get track details
+    #         track_features_ls = []
 
-        #     for t_id in track_chunks:
-        #         track_features  = sp.audio_features(t_id)
-        #         track_features_ls.append(track_features)
+    #         for t_id in track_chunks:
+    #             track_features  = sp.audio_features(t_id)
+    #             track_features_ls.append(track_features)
 
-        #     track_features_df = pd.DataFrame(track_features_ls[0])
+    #         track_features_df = pd.DataFrame(track_features_ls[0])
 
-        #     df_main = df.merge(track_features_df, on='id', how='left')
+    #         df_main = df.merge(track_features_df, on='id', how='left')
 
-        #     # Add a new column for track ranking
-        #     df_main['track_rank'] = range(1, len(df_main) + 1)
+    #         # Add a new column for track ranking
+    #         df_main['track_rank'] = range(1, len(df_main) + 1)
 
-        #     # Get genre
-        #     artist_genre_ls = []
-        #     for art_url in artist_url:
-        #         artist = sp.artist(art_url)
-        #         artist_genre_ls.append(artist['genres'])
+    #         # Get genre
+    #         artist_genre_ls = []
+    #         for art_url in artist_url:
+    #             artist = sp.artist(art_url)
+    #             artist_genre_ls.append(artist['genres'])
 
-        #     artist_genre_ls2 = []
+    #         artist_genre_ls2 = []
 
-        #     # Get the first genre of each list
-        #     simplify_genre_ls = []
+    #         # Get the first genre of each list
+    #         simplify_genre_ls = []
 
-        #     for genre in artist_genre_ls:
-        #         try:
-        #             simplify_genre_ls.append(genre[0])
-        #         except IndexError:
-        #             simplify_genre_ls.append('No Genre Data')
+    #         for genre in artist_genre_ls:
+    #             try:
+    #                 simplify_genre_ls.append(genre[0])
+    #             except IndexError:
+    #                 simplify_genre_ls.append('No Genre Data')
 
 
-        #     # Test the regex patterns on sample genres
-        #     for genre in simplify_genre_ls:
-        #         artist_genre_ls2.append(simplify_genre(genre))
+    #         # Test the regex patterns on sample genres
+    #         for genre in simplify_genre_ls:
+    #             artist_genre_ls2.append(simplify_genre(genre))
             
-        #     df_main['genre'] = artist_genre_ls2
+    #         df_main['genre'] = artist_genre_ls2
 
-        #     # Convert mill second to hours, minutes, seconds
-        #     millis=df_main['duration_ms']
-        #     df_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
+    #         # Convert mill second to hours, minutes, seconds
+    #         millis=df_main['duration_ms']
+    #         df_main['track_duration'] = pd.to_datetime(millis, unit='ms').dt.strftime('%H:%M:%S')
 
         # read in sample data
         df_main = pd.read_csv('2023_nd_sample.csv')

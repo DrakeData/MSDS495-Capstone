@@ -1,17 +1,24 @@
 # MSDS498-Capstone
 This repository contains the code used for MSDS 498 Capstone Project.
 
+**Lister App URL:** https://msds498-listr-tac4cnsusq-uc.a.run.app/
+
+## Table of Contents
+- [Introduction](#introduction)
+- [About the Data](#about-the-data)
+- [Requirements](#requirements)
+- [Project Details](#project-details)
+- [Project Limitations](#project-limitations)
+- [Future Enhancements](#future-enhancements)
+- [References](#references)
+- [Project Owners](#project-owners)
+
 ## Introduction
 ![listr_logo](images/Listr_Logo.svg)
 
-Streaming has become the primary listening format for music in the last decade. It hasgrown at an average rate of 43.9% since 2014 with an annual revenue of $13.7B in theUnited States alone in 2022 [[1]](#1). With any highly profitable business, there are bound tobe many competitors vying for their own share. Spotify currently dominates theglobal music streaming market share at 32% in 2021, but that is on the decline as theywere at 34% in 2019 [[2]](#2). The market is oversaturated-- Amazon Music and YouTubeMusic increased their subscriber count by 25% and 50% respectively in 2021.
+Streaming has become the primary listening format for music in the last decade. It has grown at an average rate of 43.9% since 2014 with an annual revenue of $13.7B in the United States alone in 2022 [[1]](#1). With any highly profitable business, there are bound to be many competitors vying for their own share. Spotify currently dominates the global music streaming market share at 32% in 2021, but that is on the decline as they were at 34% in 2019 [[2]](#2). The market is oversaturated-- Amazon Music and YouTube Music increased their subscriber count by 25% and 50% respectively in 2021.
 
-**You may ask, "why would we join an oversaturated market?"**
-
-The answer is simple. Our AI generated playlists brings a personalized touch that setsus apart from the rest of the market. Music is very personal. No two people will haveexactly the same tastes, so their playlists should be unique to them.
-
-Aside from personalized playlists, users can ask our chatbot to make them playlistsbased on prompts such as "songs about Tennessee" or "Taylor Swift's saddest songs"
-Consumers only need one subscription; we'll make sure Listr is the one they choose.
+Our current objective with our AI music streaming venture, Listr – The AI Music Streaming Add-On App, is to develop an accompanying application that seamlessly aligns with the preferences of Spotify users. Listr capitalizes on the capabilities of AI-based personalization to curate distinct playlists and enhance the social user interaction, all while operating within the confines of Spotify's established structure. This document serves as an introduction to our aims, achievements, data origins, challenges faced, and recommendations that lie ahead.
 
 ## About the Data
 
@@ -19,7 +26,7 @@ Consumers only need one subscription; we'll make sure Listr is the one they choo
 |:-------------------------------------:|:----------|
 |<img align="left" src="images/spotify_api.png"> | [The Spotify Web API](https://developer.spotify.com/documentation/web-api) [[3]](#3) empowers the development of applications that seamlessly interact with Spotify's streaming service. It enables retrieving content metadata, accessing recommendations, managing playlists, and controlling playback functionalities. |
 | <img align="left" src="images/genius_logo.png"> | [The Lyric Genius API](https://docs.genius.com/) [[4]](#4), which is associated with the Genius platform, provides developers with programmatic access to song lyrics, annotations, and related metadata. This includes features like retrieving lyrics, displaying annotations, searching for songs, and integrating these elements into applications or services. |
-| <img align="left" src="images/hf_logo.png"> | Hugging Face is a key player in NLP, known for its versatile "transformers" toolkit. For our project, the team utilized [mrm8488/t5-base-finetuned-emotion](https://huggingface.co/mrm8488/t5-base-finetuned-emotion) [[5]](#5), Google's T5 base model, which was fine-tuned using an emotion recognition dataset. This fine-tuned model was employed for an Emotion Recognition downstream task, showcasing Hugging Face's tools for efficient model deployment and transfer learning in NLP applications.
+
 
 ## Requirements
 - Access to [Spotify's API](https://developer.spotify.com/documentation/web-api)
@@ -49,15 +56,27 @@ All details for this project can be found in the project_reports repository.
     - This will be the final report that is turned in with problem statement, analysis, graphs, recommendations, and everything else.
 
 ## Project Limitations
+### Data Issues
+In an earlier report, The Million Song Dataset [[5]](#5) was initially scoped out to be the primary choice due to its number of tracks and robust data features. While this dataset initially provided great promise, it ended up being shelved due to data integrity issues. Because of this, it was decided to promote the Spotify dataset to the primary source. 
+
+MusixMatch [[6]](#6) was originally chosen to be used alongside the Million Song Dataset, but upon further investigation, the lyrics are not full texts but rather a bag-of-words which is not usable for our intended purpose. 
+
+### API Limitations
+When integrating the Spotify API with Streamlit, we observed a problem related to accessing the redirect URL for Spotify authentication. This issue arises when the authentication attempt triggers the opening of the redirect URL in a separate tab. Our current focus is on addressing this matter by developing a solution that enables the redirection URL to open within the confines of the List application itself.
+
 
 ## Future Enhancements
+- Chatbot: Allows app users to ask a chatbot for recommendations based on similar songs, artists, moods, or activities.
+- Song Recs: The current recommendation engine is solely based on Spotify's API. There are additional internal models in the works that will enhance those recommendations.
+- Clusters: There will be clustering functionalities that will allow users to compare albums, artists, and more.
+- User Data: Users will be able to seamlessly log into their Spotify account and extract their user data, generate user reports, and get recommendations based on their activity.
 
 ## References
 <a id="1">[1]</a>
 David Curry, “Music Streaming App Revenue and Usage Statistics (2023),” Business of Apps, May 2, 2023, https://www.businessofapps.com/data/music-streaming-market/.
 
 <a id="2">[2]</a>
-“Music Streaming Market Share and Revenue Statistics: Details on the Biggest Music Streaming Services,” SiriusXM Music forBusiness, January 27, 2023, https://sxmbusiness.com/music-streaming-market-share-and-revenue-statistic.
+“Music Streaming Market Share and Revenue Statistics: Details on the Biggest Music Streaming Services,” SiriusXM Music for Business, January 27, 2023, https://sxmbusiness.com/music-streaming-market-share-and-revenue-statistic.
 
 <a id="3">[3]</a>
 “Spotify API,” Web API | Spotify for Developers, accessed July 8, 2023, https://developer.spotify.com/documentation/web-api.
@@ -66,7 +85,10 @@ David Curry, “Music Streaming App Revenue and Usage Statistics (2023),” Busi
 “Genius API Documentation.” Genius API. Accessed August 6, 2023. https://docs.genius.com/.
 
 <a id="5">[5]</a>
-Romero, Manuel. “MRM8488/T5-Base-Finetuned-Emotion · Hugging Face.” mrm8488/t5-base-finetuned-emotion. Accessed August 6, 2023. https://huggingface.co/mrm8488/t5-base-finetuned-emotion. 
+Million Song Dataset, accessed July 8, 2023, http://millionsongdataset.com/.
+
+<a id="6">[6]</a>
+“Build with Lyrics.” Musixmatch Developer. Accessed July 8, 2023. https://developer.musixmatch.com/. 
 
 ## Project Owners
 - [Grace Chen](https://github.com/grchen99)
