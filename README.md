@@ -52,7 +52,7 @@ All details for this project can be found in the project_reports repository.
 02. [Lister Initial Findings](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/02.%20Listr%20Initial%20Findings.pdf)
     - This document provides an update on the progress of our consulting project, detailing our initial findings, accomplishments, and addressing concerns regarding expenditure. We are committed to delivering meaningful results aligned with the organization's goals and ensuring efficient resource utilization.
 
-03. Final Report (Coming Soon)
+03. [Final Report](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/03.%20Listr%20Final%20Report.pdf)
     - This will be the final report that is turned in with problem statement, analysis, graphs, recommendations, and everything else.
 
 ## Project Limitations
