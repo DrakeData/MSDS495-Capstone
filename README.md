@@ -46,13 +46,13 @@ Save config.py file in app directory
 ## Project Details
 All details for this project can be found in the project_reports repository.
 
-01. [Listr Project Goals](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/01.%20Listr%20Project%20Goals.pdf)
+01. [Listr Project Goals](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/01.%20Listr%20Project%20Goals%20Updated.pdf)
     - This document outlines our project's objectives, methodology, and expected deliverables to provide a clear understanding of our approach and its potential impact on the organization. We aim to achieve specific goals by conducting a comprehensive analysis using data-driven techniques and advanced analytic tools.
 
-02. [Lister Initial Findings](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/02.%20Listr%20Initial%20Findings.pdf)
+02. [Lister Initial Findings](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/02.%20Listr%20Initial%20Findings%20Updated.pdf)
     - This document provides an update on the progress of our consulting project, detailing our initial findings, accomplishments, and addressing concerns regarding expenditure. We are committed to delivering meaningful results aligned with the organization's goals and ensuring efficient resource utilization.
 
-03. [Final Report](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/03.%20Listr%20Final%20Report.pdf)
+03. [Final Report](https://github.com/DrakeData/MSDS498-Capstone/blob/main/project_reports/03.%20Listr%20Final%20Report%20Updated.pdf)
     - This will be the final report that is turned in with problem statement, analysis, graphs, recommendations, and everything else.
 
 ## Project Limitations
